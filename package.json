@@ -1,0 +1,12 @@
+{
+  "name": "purescript-angular",
+  "private": true,
+  "devDependencies": {
+    "gulp": "^3.7.0",
+    "gulp-clean": "^0.2.4",
+    "gulp-plumber": "^0.5.6",
+    "gulp-purescript": "^0.0.8",
+    "gulp-util": "^2.2.14",
+    "node-static": "^0.7.3"
+  }
+}
