@@ -20,8 +20,8 @@ focusLink scope element attrs ctrls trans = do
                                zeroTimeout case element !! 0 of
                                              Just el -> focus el
                                              Nothing -> return unit
-                               return {}
-                             return unit)) false scope
+                               return unit
+                           )) false scope
   return unit
 
 foreign import zeroTimeout

@@ -26,7 +26,7 @@ addTodo scope = do
     put $ todos <> [todo]
     pushSTArray s.todos todo
     writeScopeState { newTodo: "" , remainingCount: s.remainingCount + 1 } scope
-    return {}
+    return unit
 
 todoCompleted scope todo
   = modifyScopeState (\s -> do
@@ -75,7 +75,6 @@ removeTodo scope todo = do
     writeScopeState { remainingCount: s.remainingCount + c} scope
     spliceSTArray s.todos i 1 []
     put arr
-    return {}
 
 revertEditing scope todo = do
   s <- readScopeState scope
@@ -88,7 +87,6 @@ revertEditing scope todo = do
         doneEditing scope t
         return unit
       Nothing -> return unit
-    return {}
 
 watchRemainingCount scope = do
   watch "remainingCount == 0" (Just (\a1 _ _ ->
