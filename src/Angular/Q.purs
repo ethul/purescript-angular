@@ -1,6 +1,6 @@
 module Angular.Q
-  ( Q(..)
-  , Promise(..)
+  ( Q()
+  , Promise()
   , resolve
   , reject
   , when
@@ -13,8 +13,6 @@ module Angular.Q
   ) where
 
 import Control.Monad.Eff
-
-import Angular.Injector (InjectDependency(..))
 
 foreign import data Q :: *
 
@@ -33,13 +31,6 @@ instance bindPromise :: Bind Promise where
   (>>=) = then'
 
 instance monadPromise :: Monad Promise
-
-foreign import injQ
-  " function injQ(){ \
-  \   var $injector = angular.element(document).injector(); \
-  \   return $injector.get('$q'); \
-  \ } "
-  :: forall e. Eff (nginj :: InjectDependency | e) Q
 
 foreign import resolvePure
   " function resolvePure(a){ \

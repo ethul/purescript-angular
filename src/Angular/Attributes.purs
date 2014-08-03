@@ -1,4 +1,14 @@
-module Angular.Attributes where
+module Angular.Attributes
+  ( Attributes()
+  , Attr()
+  , addClass
+  , removeClass
+  , updateClass
+  , observe
+  , set
+  , get
+  , attr
+  ) where
 
 import Control.Monad.Eff
 

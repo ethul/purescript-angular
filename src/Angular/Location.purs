@@ -1,19 +1,18 @@
-module Angular.Location where
+module Angular.Location
+  ( Location()
+  , Loc()
+  , LocEff()
+  , getPath
+  , setPath
+  ) where
 
 import Control.Monad.Eff
-
-import Angular.Injector (InjectDependency(..))
 
 foreign import data Location :: *
 
 foreign import data Loc :: !
 
-foreign import location
-  " function location(){ \
-  \   var $injector = angular.element(document).injector(); \
-  \   return $injector.get('$location'); \
-  \ }"
-  :: forall e. Eff (nginj :: InjectDependency | e) Location
+type LocEff e a = Eff (ngloc :: Loc | e) a
 
 foreign import getPath
   " function getPath(loc){ \
@@ -21,7 +20,7 @@ foreign import getPath
   \     return loc.path(); \
   \   }; \
   \ }"
-  :: forall e. Location -> Eff (ngloc :: Loc | e) String
+  :: forall e. Location -> LocEff e String
 
 foreign import setPath
   " function setPath(path){ \
@@ -31,4 +30,4 @@ foreign import setPath
   \     }; \
   \   }; \
   \ }"
-  :: forall e. String -> Location -> Eff (ngloc :: Loc | e) String
+  :: forall e. String -> Location -> LocEff e String

@@ -2,8 +2,8 @@ module Angular where
 
 import Control.Monad.Eff
 
-import Angular.Injector (Injector(..))
-import Angular.Element (Element(..))
+import Angular.Injector (Injector())
+import Angular.Element (Element())
 
 -- | bind
 

@@ -1,6 +1,6 @@
 module Angular.FormController
- ( FormController(..)
- , FormCtrl(..)
+ ( FormController()
+ , FormCtrl()
  , addControl
  , removeControl
  , setValidity
@@ -15,7 +15,7 @@ module Angular.FormController
 
 import Control.Monad.Eff
 
-import Angular.NgModelController (NgModelController(..), ValidationErrorKey(..))
+import Angular.NgModelController (NgModelController(), ValidationErrorKey())
 
 foreign import data FormController :: *
 

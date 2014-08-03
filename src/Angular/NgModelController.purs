@@ -1,9 +1,9 @@
 module Angular.NgModelController
- ( NgModelController(..)
- , NgModelCtrl(..)
- , Parser(..)
- , Formatter(..)
- , ValidationErrorKey(..)
+ ( NgModelController()
+ , NgModelCtrl()
+ , Parser()
+ , Formatter()
+ , ValidationErrorKey()
  , render
  , setRender
  , isEmpty

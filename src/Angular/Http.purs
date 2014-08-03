@@ -1,14 +1,13 @@
 module Angular.Http
- ( HTTP(..)
- , Http(..)
- , Method(..)
- , Status(..)
- , Response(..)
- , ResponseType(..)
- , Url(..)
- , Config(..)
+ ( HTTP()
+ , Http()
+ , Method()
+ , Status()
+ , Response()
+ , ResponseType()
+ , Url()
+ , Config()
  , defaultConfig
- , injHttp
  , http
  , get
  , delete'
@@ -21,7 +20,6 @@ module Angular.Http
 import Control.Monad.Eff
 import Data.Maybe
 
-import Angular.Injector (InjectDependency(..))
 import Angular.Q
 
 foreign import data HTTP :: !
@@ -82,13 +80,6 @@ instance showResponseType :: Show ResponseType where
 
 defaultConfig :: forall a b. Config a b
 defaultConfig = { method: GET, url: "", params: Nothing, "data": Nothing }
-
-foreign import injHttp
-  " function injHttp(){ \
-  \   var $injector = angular.element(document).injector(); \
-  \   return $injector.get('$http'); \
-  \ } "
-  :: forall e. Eff (nginj :: InjectDependency | e) Http
 
 foreign import http
   " function http(__dict_Show){ \
@@ -214,4 +205,4 @@ foreign import put
   -> Eff (nghttp :: HTTP | e) (Promise (Response a b c))
 
 -- | TODO: The Prelude is not required, but we need it for the (Show Method) =>
-forcePreludeToBeRequired = show GET
+howCanWeEnsureShowIsIncluded = show GET
