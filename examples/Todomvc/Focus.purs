@@ -1,28 +1,21 @@
-module Todomvc.Focus where
+module Todomvc.Focus (FocusDirective(), focus) where
 
 import Data.Maybe
-import Debug.Trace (trace)
 import Control.Monad (when)
 import Control.Monad.Eff
 
-import DOM.Node (DOM(..), focus)
+import qualified DOM.Node as D
 
-import Angular.Attributes (Attr(..), get)
-import Angular.Directive (LinkFn(..), directive, defn, postLink)
+import Angular.Attributes (Attr(), get)
 import Angular.Element ((!!))
 import Angular.Scope (watch, apply, applyExpr)
 
-focusLink :: forall e a b c d. LinkFn (ngattr :: Attr, dom :: DOM | e) a b c d
-focusLink scope element attrs ctrls trans = do
+foreign import data FocusDirective :: *
+
+link scope element attrs = do
   as <- get attrs
-  watch as.todoFocus (Just (\a1 _ _ -> do
-                             when a1 $ do
-                               zeroTimeout case element !! 0 of
-                                             Just el -> focus el
-                                             Nothing -> return unit
-                               return unit
-                           )) false scope
-  return unit
+  watch as.todoFocus (Just (\a _ _ -> when a $ zeroTimeout
+                                             $ maybe (return unit) D.focus (element !! 0))) false scope
 
 foreign import zeroTimeout
   " function zeroTimeout(k) { \
@@ -33,5 +26,11 @@ foreign import zeroTimeout
   \ }"
   :: forall e. Eff e Unit -> Eff e Unit
 
-focusDirective m =
-  directive "todoFocus" m $ return defn { link = postLink focusLink }
+foreign import focus
+  " /*@ngInject*/function focus(){ \
+  \   return { \
+  \     link: function($scope, $element, $attrs){ \
+  \       return link($scope)($element)($attrs)(); \
+  \     } \
+  \   }; \
+  \ } " :: FocusDirective

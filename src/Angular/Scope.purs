@@ -1,9 +1,45 @@
-module Angular.Scope where
+module Angular.Scope
+  ( Scope()
+  , ReadScope()
+  , WriteScope()
+  , Read()
+  , Write()
+  , ReadWrite()
+  , WatchListener()
+  , Event()
+  , ApplyExpr()
+  , WatchDeregistration()
+  , OnDeregistration()
+  , readScope
+  , writeScope
+  , extendScope
+  , modifyScope
+  , newScope
+  , watch
+  , watchCollection
+  , digest
+  , destroy
+  , evalSync
+  , evalAsync
+  , applyExpr
+  , stringApplyExpr
+  , defaultApplyExpr
+  , apply
+  , on
+  , emit
+  , broadcast
+  , deregisterWatch
+  , deregisterOn
+  , id
+  , root
+  , parent
+  ) where
 
-import Prelude (Unit(..))
-
+import Prelude (Unit(), ($))
 import Control.Monad.Eff
+import Control.Monad.Eff.Unsafe
 import Data.Maybe
+import Data.Function (Fn2(), Fn3(), Fn4(), Fn5(), runFn2, runFn3, runFn4, runFn5)
 
 type WatchListener e a b = a -> a -> Scope b -> Eff e Unit
 
@@ -27,6 +63,49 @@ foreign import data WatchDeregistration :: *
 
 foreign import data OnDeregistration :: *
 
+foreign import data ReadScope :: !
+
+foreign import data WriteScope :: !
+
+type Read e a = Eff (ngrscope :: ReadScope | e) { | a }
+
+type Write e = Eff (ngwscope :: WriteScope | e) Unit
+
+type ReadWrite e r = Eff (ngrscope :: ReadScope, ngwscope :: WriteScope | e) r
+
+writeScope :: forall e a b. String -> b -> Scope a -> Write e
+writeScope = runFn3 writeScopeFn
+
+extendScope :: forall e a b. { | b } -> Scope a -> Write e
+extendScope = runFn2 extendScopeFn
+
+modifyScope :: forall e f a b. ({ | a} -> Eff f { | b }) -> Scope a -> ReadWrite e Unit
+modifyScope k s = do
+  s' <- readScope s
+  w <- unsafeInterleaveEff $ k s'
+  extendScope w s
+
+foreign import readScope
+  "function readScope(scope){\
+  \  return function(){\
+  \    return scope;\
+  \  };\
+  \}" :: forall e a. Scope a -> Read e a
+
+foreign import writeScopeFn
+  "function writeScopeFn(prop, value, scope){\
+  \  return function(){\
+  \    scope[prop] = value;\
+  \  };\
+  \}" :: forall e a b. Fn3 String b (Scope a) (Write e)
+
+foreign import extendScopeFn
+  "function extendScopeFn(obj, scope){\
+  \  return function(){\
+  \    angular.extend(scope, obj);\
+  \  };\
+  \}" :: forall e a b. Fn2 { | b } (Scope a) (Write e)
+
 foreign import newScope
   " function newScope(isolate){ \
   \   return function(scope){ \
@@ -35,28 +114,24 @@ foreign import newScope
   \ }"
   :: forall a b. Boolean -> Scope a -> Scope b
 
-foreign import watch
-  " function watch(exp){ \
-  \   return function(listener){ \
-  \     return function(objEq){ \
-  \       return function(scope){ \
-  \         return function(){ \
-  \           return ( \
-  \             listener.ctor === Data_Maybe.Nothing.ctor ? \
-  \               scope.$watch(exp, undefined, objEq)     : \
-  \               scope.$watch(exp, function(a1,a2,scope){listener.values[0](a1)(a2)(scope)()}, objEq) \
-  \           ); \
-  \         }; \
-  \       }; \
-  \     }; \
-  \   }; \
+foreign import watchFn
+  " function watchFn(maybe, exp, listener, objEq, scope){ \
+  \   return maybe(function(){return scope.$watch(exp, undefined, objEq);}) \
+  \               (function(k){return function(){return scope.$watch(exp, function(a1,a2,scope){k(a1)(a2)(scope)()}, objEq);}}) \
+  \               (listener); \
   \ }"
-  :: forall e a b
-  .  String
-  -> Maybe (WatchListener e a b)
-  -> Boolean
-  -> Scope b
-  -> Eff e WatchDeregistration
+  :: forall e a b. Fn5 (Eff e WatchDeregistration
+                       -> (WatchListener e a b -> Eff e WatchDeregistration)
+                       -> Maybe (WatchListener e a b)
+                       -> Eff e WatchDeregistration)
+                       String
+                       (Maybe (WatchListener e a b))
+                       Boolean
+                       (Scope b)
+                       (Eff e WatchDeregistration)
+
+watch :: forall e a b. String -> Maybe (WatchListener e a b) -> Boolean -> Scope b -> Eff e WatchDeregistration
+watch = runFn5 watchFn maybe
 
 foreign import watchCollection
   " function watchCollection(exp){ \
@@ -92,42 +167,35 @@ foreign import destroy
   \ }"
   :: forall e a. Scope a -> Eff e Unit
 
-foreign import evalSync
-  " function evalSync(expr){ \
-  \   return function(locals){ \
-  \     return function(scope){ \
-  \       return function(){ \
-  \         return ( \
-  \           expr.ctor === Data_Maybe.Nothing.ctor      ? \
-  \             scope.$eval(undefined, locals.values[0]) : \
-  \             scope.$eval(function(scope){return expr(scope)();}, locals.values[0]) \
-  \         ); \
-  \       }; \
-  \     }; \
-  \   }; \
-  \ }"
-  :: forall e r a b c
-  .  Maybe (Scope a -> Eff e r)
-  -> Maybe { | b }
-  -> Scope a
-  -> Eff e r
+foreign import evalSyncFn
+  " function evalSyncFn(maybe, expr, locals, scope){ \
+  \   return maybe(function(){return scope.$eval(undefined, maybe(undefined)(angular.identity)(locals));}) \
+  \               (function(k){return function(){return scope.$eval(function(scope){return k(scope)();}, \
+  \                                                                 maybe(undefined)(angular.identity)(locals));}}) \
+  \               (expr); \
+  \ } "
+  :: forall e r s t a b c. Fn4 (t -> (s -> t) -> Maybe s -> t)
+                               (Maybe (Scope a -> Eff e r))
+                               (Maybe { | b })
+                               (Scope a)
+                               (Eff e r)
 
-foreign import evalAsync
-  " function evalAsync(expr){ \
-  \   return function(scope){ \
-  \     return function(){ \
-  \       return ( \
-  \         expr.ctor === Data_Maybe.Nothing.ctor ? \
-  \           scope.$evalAsync()                  : \
-  \           scope.$evalAsync(function(scope){return expr(scope)();}) \
-  \       ); \
-  \     }; \
-  \   }; \
-  \ }"
-  :: forall e r a
-  .  Maybe (Scope a -> Eff e r)
-  -> Scope a
-  -> Eff e Unit
+evalSync :: forall e r a b. Maybe (Scope a -> Eff e r) -> Maybe { | b } -> Scope a -> Eff e r
+evalSync = runFn4 evalSyncFn maybe
+
+foreign import evalAsyncFn
+  " function evalAsyncFn(maybe, expr, scope){ \
+  \   return maybe(function(){return scope.$evalAsync();}) \
+  \               (function(k){return function(){return scope.$evalAsync(function(scope){return k(scope)();});}}) \
+  \               (expr); \
+  \ } "
+  :: forall e r s t a b. Fn3 (t -> (s -> t) -> Maybe s -> t)
+                             (Maybe (Scope a -> Eff e r))
+                             (Scope a)
+                             (Eff e r)
+
+evalAsync :: forall e r a. Maybe (Scope a -> Eff e r) -> Scope a -> Eff e r
+evalAsync = runFn3 evalAsyncFn maybe
 
 applyExpr :: forall e r a. (Scope a -> Eff e r) -> ApplyExpr e r a
 applyExpr = FnApplyExpr
@@ -215,12 +283,12 @@ foreign import id "function id(scope){return scope.$id;}" :: forall a. Scope a -
 
 foreign import root "function root(scope){return scope.$root;}" :: forall a b. Scope a -> Scope b
 
-foreign import parent
-  " function parent(scope){ \
+foreign import parentFn
+  " function parentFn(nothing, just, scope){ \
   \   var a = scope.$parent; \
-  \   return a ? Data_Maybe.Just(a) : Data_Maybe.Nothing; \
+  \   return a ? just(a) : nothing; \
   \ }"
-  :: forall a b. Scope a -> Maybe (Scope b)
+  :: forall a b. Fn3 (Maybe (Scope b)) (Scope b -> Maybe (Scope b)) (Scope a) (Maybe (Scope b))
 
--- | TODO: Fix
-howCanWeEnsureDataMaybeIsIncluded = Nothing
+parent :: forall a b. Scope a -> Maybe (Scope b)
+parent = runFn3 parentFn Nothing Just

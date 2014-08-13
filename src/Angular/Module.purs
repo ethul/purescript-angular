@@ -1,8 +1,28 @@
-module Angular.Module where
+module Angular.Module
+  ( Module()
+  , ReadModule()
+  , WriteModule()
+  , RegisterToModule()
+  , Read()
+  , Write()
+  , Register()
+  , ngmodule
+  , ngmodule'
+  , provider
+  , factory
+  , service
+  , value
+  , constant
+  , animation
+  , filter
+  , controller
+  , directive
+  , config
+  , run
+  ) where
 
 import Control.Monad.Eff
-
-import Angular.Injector (InjectDependency(..))
+import Data.Function
 
 foreign import data Module :: *
 
@@ -10,113 +30,77 @@ foreign import data ReadModule :: !
 
 foreign import data WriteModule :: !
 
-foreign import data RegisterModule :: !
+foreign import data RegisterToModule :: !
 
-foreign import newModule
-  " function newModule(name){ \
-  \   return function(requires){ \
-  \     return function(){ \
-  \       return angular.module(name, requires); \
-  \     }; \
-  \   }; \
-  \ } "
-  :: forall e. String -> [String] -> Eff (ngwmod :: WriteModule | e) Module
+type Read e = Eff (ngrmod :: ReadModule | e) Module
 
-foreign import getModule
-  " function getModule(name){ \
-  \   return function(){ \
-  \     return angular.module(name); \
-  \   }; \
-  \ } "
-  :: forall e. String -> Eff (ngrmod :: ReadModule | e) Module
+type Write e = Eff (ngwmod :: WriteModule | e) Module
 
+type Register e = Eff (nggmod :: RegisterToModule | e) Module
 
--- | directive in Angular.Directive
+ngmodule :: forall e. String -> Read e
+ngmodule = readModuleFn
 
--- | controller in Angular.Controller
+ngmodule' :: forall e. String -> [String] -> Write e
+ngmodule' = runFn2 writeModuleFn
 
-foreign import factory
-  " function factory(name){ \
-  \   return function(k){ \
-  \     return function(module){ \
-  \       return function(){ \
-  \         return module.factory(name, k); \
-  \       }; \
-  \     }; \
-  \   }; \
-  \ } "
-  :: forall e a
-  .  String
-  -> Eff (nginj :: InjectDependency | e) { | a }
-  -> Module
-  -> Eff (nggmod :: RegisterModule | e) Module
+provider :: forall e a. String -> a -> Module -> Register e
+provider = runFn4 registerNamedToModuleFn "provider"
 
-foreign import service
-  " function service(name){ \
-  \   return function(k){ \
-  \     return function(module){ \
-  \       return function(){ \
-  \         return module.service(name, function(){ \
-  \           return angular.extend(this, k()); \
-  \         }); \
-  \       }; \
-  \     }; \
-  \   }; \
-  \ } "
-  :: forall e a
-  .  String
-  -> Eff (nginj :: InjectDependency | e) { | a }
-  -> Module
-  -> Eff (nggmod :: RegisterModule | e) Module
+factory :: forall e a. String -> a -> Module -> Register e
+factory = runFn4 registerNamedToModuleFn "factory"
 
-foreign import constant
-  " function constant(name){ \
-  \   return function(c){ \
-  \     return function(module){ \
-  \       return function(){ \
-  \         return module.constant(name, c); \
-  \       }; \
-  \     }; \
-  \   }; \
-  \ } "
-  :: forall e a
-  .  String
-  -> a
-  -> Module
-  -> Eff (nggmod :: RegisterModule | e) Module
+service :: forall e a. String -> a -> Module -> Register e
+service = runFn4 registerNamedToModuleFn "service"
 
-foreign import value
-  " function value(name){ \
-  \   return function(v){ \
-  \     return function(module){ \
-  \       return function(){ \
-  \         return module.value(name, v); \
-  \       }; \
-  \     }; \
-  \   }; \
-  \ } "
-  :: forall e a
-  .  String
-  -> a
-  -> Module
-  -> Eff (nggmod :: RegisterModule | e) Module
+value :: forall e a. String -> a -> Module -> Register e
+value = runFn4 registerNamedToModuleFn "value"
 
-foreign import provider
-  " function provider(name){ \
-  \   return function(k){ \
-  \     return function(module){ \
-  \       return function(){ \
-  \         return module.service(name, function(){ \
-  \           return angular.extend(this, k()); \
-  \         }); \
-  \       }; \
-  \     }; \
-  \   }; \
-  \ } "
-  :: forall e a b
-  .  String
-  -> Eff (nginj :: InjectDependency | e) { "$get" :: Eff (nginj :: InjectDependency | e) a | b }
-  -> Module
-  -> Eff (nggmod :: RegisterModule | e) Module
+constant :: forall e a. String -> a -> Module -> Register e
+constant = runFn4 registerNamedToModuleFn "constant"
 
--- | decorator
+animation :: forall e a. String -> a -> Module -> Register e
+animation = runFn4 registerNamedToModuleFn "animation"
+
+filter :: forall e a. String -> a -> Module -> Register e
+filter = runFn4 registerNamedToModuleFn "filter"
+
+controller :: forall e a. String -> a -> Module -> Register e
+controller = runFn4 registerNamedToModuleFn "controller"
+
+directive :: forall e a. String -> a -> Module -> Register e
+directive = runFn4 registerNamedToModuleFn "directive"
+
+config :: forall e a. a -> Module -> Register e
+config = runFn3 registerUnnamedToModuleFn "config"
+
+run :: forall e a. a -> Module -> Register e
+run = runFn3 registerUnnamedToModuleFn "run"
+
+foreign import readModuleFn
+  "function readModuleFn(name){\
+  \  return function(){\
+  \    return angular.module(name);\
+  \  };\
+  \}" :: forall e. String -> Read e
+
+foreign import writeModuleFn
+  "function writeModuleFn(name, modules){\
+  \  return function(){\
+  \    return angular.module(name, modules);\
+  \  };\
+  \}" :: forall e. Fn2 String [String] (Write e)
+
+foreign import registerNamedToModuleFn
+  "function registerNamedToModuleFn(type, name, a, module){\
+  \  return function(){\
+  \    return module[type](name, a);\
+  \  };\
+  \}" :: forall e a. Fn4 String String a Module (Register e)
+
+foreign import registerUnnamedToModuleFn
+  "function registerUnnamedToModuleFn(type, a, module){\
+  \  return function(){\
+  \    return module[type](a);\
+  \  };\
+  \}" :: forall e a. Fn3 String a Module (Register e)

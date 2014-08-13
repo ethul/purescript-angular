@@ -1,13 +1,13 @@
 module Todomvc.Main where
 
-import Angular.Module (newModule)
+import Angular.Module (controller, directive, ngmodule')
 
-import Todomvc.Controller (todoController)
-import Todomvc.Escape (escapeDirective)
-import Todomvc.Focus (focusDirective)
+import Todomvc.Controller (todoctrl)
+import Todomvc.Escape (escape)
+import Todomvc.Focus (focus)
 
 main = do
-  m <- newModule "todomvc" []
-  todoController m
-  escapeDirective m
-  focusDirective m
+  m <- ngmodule' "todomvc" []
+  controller "TodoCtrl" todoctrl m
+  directive "todoEscape" escape m
+  directive "todoFocus" focus m

@@ -1,11 +1,10 @@
 module Angular.Cache
- ( Cache(..)
- , CacheFactory(..)
- , CACHE(..)
- , Key(..)
- , Name(..)
- , Options(..)
- , injCacheFactory
+ ( Cache()
+ , CacheFactory()
+ , CACHE()
+ , Key()
+ , Name()
+ , Options()
  , cache
  , put
  , get
@@ -18,8 +17,6 @@ module Angular.Cache
 import Control.Monad.Eff
 import Data.Maybe
 
-import Angular.Injector (InjectDependency(..))
-
 foreign import data CACHE :: !
 
 foreign import data Cache :: *
@@ -31,13 +28,6 @@ type Key = String
 type Name = String
 
 type Options a = { capacity :: Number | a }
-
-foreign import injCacheFactory
-  " function injCacheFactory(){ \
-  \   var $injector = angular.element(document).injector(); \
-  \   return $injector.get('$cacheFactory'); \
-  \ } "
-  :: forall e. Eff (nginj :: InjectDependency | e) CacheFactory
 
 foreign import cache
   " function cache(name){ \

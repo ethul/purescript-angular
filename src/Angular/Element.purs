@@ -1,18 +1,71 @@
-module Angular.Element where
+module Angular.Element
+  ( Element()
+  , El()
+  , Handler()
+  , DeregisterHandler()
+  , element
+  , addClass
+  , after
+  , getAttr
+  , setAttr
+  , setAllAttr
+  , bind
+  , children
+  , clone
+  , contents
+  , getCss
+  , setCss
+  , setAllCss
+  , getData
+  , setData
+  , setAllData
+  , empty
+  , eq
+  , find
+  , hasClass
+  , html
+  , next
+  , on
+  , off
+  , offHandler
+  , one
+  , parent
+  , prepend
+  , getProp
+  , setProp
+  , setAllProp
+  , ready
+  , remove
+  , removeAttr
+  , removeClass
+  , removeData
+  , replaceWith
+  , toggleClass
+  , triggerHandler
+  , unbind
+  , unbindHandler
+  , getVal
+  , setVal
+  , wrap
+  , controller
+  , injector
+  , scope
+  , isolateScope
+  , inheritedData
+  , (!!)
+  ) where
 
-import Prelude (Unit(..))
+import Prelude (Unit())
 
 import Control.Monad.Eff
+import Data.Function (Fn3(), Fn4(), runFn3, runFn4)
 import Data.Maybe
 
-import DOM.Event (Event(..))
-import DOM.Node (Node(..))
+import DOM.Event (Event())
+import DOM.Node (Node())
 
-import Angular.Injector (Injector(..))
-import Angular.Scope (Scope(..))
-
--- | TODO
-type Controller a = Unit
+import Angular.Injector (Injector())
+import Angular.Scope (Scope())
 
 type Handler e = Event -> Eff e Unit
 
@@ -473,34 +526,43 @@ foreign import controller
   \     }; \
   \   }; \
   \ }"
-  :: forall e a. Maybe String -> Element -> Eff (ngel :: El | e) (Maybe (Controller a))
+  :: forall e a. Maybe String -> Element -> Eff (ngel :: El | e) (Maybe a)
 
-foreign import injector
-  " function injector(el){ \
+foreign import injectorFn
+  " function injectorFn(nothing, just, el){ \
   \   return function(){ \
   \     var a = el.injector(); \
-  \     return angular.isDefined(a) ? Data_Maybe.Just(a) : Data_Maybe.Nothing; \
+  \     return angular.isDefined(a) ? just(a) : nothing; \
   \   }; \
   \ }"
-  :: forall e a. Element -> Eff (ngel :: El | e) (Maybe Injector)
+  :: forall e a. Fn3 (Maybe Injector) (Injector -> Maybe Injector) Element (Eff (ngel :: El | e) (Maybe Injector))
 
-foreign import scope
-  " function scope(el){ \
+injector :: forall e a. Element -> Eff (ngel :: El | e) (Maybe Injector)
+injector = runFn3 injectorFn Nothing Just
+
+foreign import scopeFn
+  " function scopeFn(nothing, just, el){ \
   \   return function(){ \
   \     var a = el.scope(); \
-  \     return angular.isDefined(a) ? Data_Maybe.Just(a) : Data_Maybe.Nothing; \
+  \     return angular.isDefined(a) ? just(a) : nothing; \
   \   }; \
   \ }"
-  :: forall e a. Element -> Eff (ngel :: El | e) (Maybe (Scope a))
+  :: forall e a. Fn3 (Maybe (Scope a)) (Scope a -> Maybe (Scope a)) Element (Eff (ngel :: El | e) (Maybe (Scope a)))
 
-foreign import isolateScope
-  " function isolateScope(el){ \
+scope :: forall e a. Element -> Eff (ngel :: El | e) (Maybe (Scope a))
+scope = runFn3 scopeFn Nothing Just
+
+foreign import isolateScopeFn
+  " function isolateScopeFn(nothing, just, el){ \
   \   return function(){ \
   \     var a = el.isolateScope(); \
-  \     return angular.isDefined(a) ? Data_Maybe.Just(a) : Data_Maybe.Nothing; \
+  \     return angular.isDefined(a) ? just(a) : nothing; \
   \   }; \
   \ }"
-  :: forall e a. Element -> Eff (ngel :: El | e) (Maybe (Scope a))
+  :: forall e a. Fn3 (Maybe (Scope a)) (Scope a -> Maybe (Scope a)) Element (Eff (ngel :: El | e) (Maybe (Scope a)))
+
+isolateScope :: forall e a. Element -> Eff (ngel :: El | e) (Maybe (Scope a))
+isolateScope = runFn3 isolateScopeFn Nothing Just
 
 foreign import inheritedData
   " function inheritedData(el){ \
@@ -510,16 +572,14 @@ foreign import inheritedData
   \ }"
   :: forall e a. Element -> Eff (ngel :: El | e) { | a }
 
+foreign import bangbangFn
+  " function bangbangFn(nothing, just, el, i) { \
+  \   var r = el[i]; \
+  \   return angular.isDefined(r) ? just(r) : nothing; \
+  \ }"
+  :: Fn4 (Maybe Node) (Node -> Maybe Node) Element Number (Maybe Node)
+
 infixl 8 !!
 
-foreign import (!!)
-  " function $bang$bang(el) { \
-  \   return function(i){ \
-  \     var r = el[i]; \
-  \     return angular.isDefined(r) ? Data_Maybe.Just(r) : Data_Maybe.Nothing; \
-  \   }; \
-  \ }"
-  :: Element -> Number -> Maybe Node
-
--- | TODO: Fix
-howCanWeEnsureDataMaybeIsIncluded = Nothing
+(!!) :: Element -> Number -> Maybe Node
+(!!) = runFn4 bangbangFn Nothing Just
