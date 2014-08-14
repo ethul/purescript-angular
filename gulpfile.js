@@ -86,7 +86,7 @@ gulp.task('watch', function(cb){
   gulp.watch(config.purescript.src, ['make']);
 });
 
-gulp.task('watch_todomvc', function(cb){
+gulp.task('watch.todomvc', function(cb){
   gulp.watch([config.purescript.examples.todomvc].concat(config.purescript.src), ['todomvc']);
   server(cb);
 });

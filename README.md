@@ -17,7 +17,7 @@ purescript-angular $ bower install
 
 purescript-angular $ gulp todomvc
 
-purescript-angular $ gulp watch_todomvc
+purescript-angular $ gulp watch.todomvc
 ```
 
 Then visit: [http://localhost:9501/examples/Todomvc/main.html](http://localhost:9501/examples/Todomvc/main.html).
