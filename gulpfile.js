@@ -72,6 +72,15 @@ gulp.task('make', function(){
   );
 });
 
+gulp.task('psci', function(){
+  return (
+    gulp.src(config.purescript.src).
+    pipe(plumber()).
+    pipe(purescript.dotPsci()).
+    on('error', error)
+  );
+});
+
 gulp.task('docgen', function(){
   return (
     gulp.src(config.purescript.src[1]).

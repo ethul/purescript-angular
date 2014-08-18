@@ -4,7 +4,7 @@
 
 ### Values
 
-    bootstrap :: forall e. Element -> [Prim.String] -> Eff e Injector
+    bootstrap :: forall e. Element -> [String] -> Eff e Injector
 
     copy :: forall e a. a -> Eff e a
 
@@ -22,179 +22,58 @@
 
 ### Values
 
-    addClass :: forall e. Prim.String -> Attributes -> Eff (ngattr :: Attr | e) Unit
+    addClass :: forall e. String -> Attributes -> Eff (ngattr :: Attr | e) Unit
 
     attr :: forall e a. Attributes -> Eff (ngattr :: Attr | e) {  | a }
 
     get :: forall e a. Attributes -> Eff (ngattr :: Attr | e) {  | a }
 
-    observe :: forall e f. Prim.String -> (Prim.String -> Eff f Unit) -> Attributes -> Eff (ngattr :: Attr | e) Unit
+    observe :: forall e f. String -> (String -> Eff f Unit) -> Attributes -> Eff (ngattr :: Attr | e) Unit
 
-    removeClass :: forall e. Prim.String -> Attributes -> Eff (ngattr :: Attr | e) Unit
+    removeClass :: forall e. String -> Attributes -> Eff (ngattr :: Attr | e) Unit
 
-    set :: forall e. Prim.String -> Prim.String -> Attributes -> Eff (ngattr :: Attr | e) Unit
+    set :: forall e. String -> String -> Attributes -> Eff (ngattr :: Attr | e) Unit
 
-    updateClass :: forall e. Prim.String -> Prim.String -> Attributes -> Eff (ngattr :: Attr | e) Unit
+    updateClass :: forall e. String -> String -> Attributes -> Eff (ngattr :: Attr | e) Unit
 
 
-## Module Angular.Controller
+## Module Angular.Cache
 
 ### Types
 
-    data ReadScopeState :: # * -> !
+    data CACHE :: !
 
-    data ReadThisState :: # * -> !
+    data Cache :: *
 
-    type ScopeState a = {  | a }
+    data CacheFactory :: *
 
-    data This :: # * -> *
+    type Key  = String
 
-    type ThisState a = {  | a }
+    type Name  = String
 
-    data WriteScopeState :: # * -> !
-
-    data WriteThisState :: # * -> !
+    type Options a = { capacity :: Number | a }
 
 
 ### Values
 
-    controller :: forall e r a b c d. Prim.String -> Module -> (Scope a -> This b -> Eff (nginj :: InjectDependency, ngwthis :: WriteThisState d, ngwscope :: WriteScopeState c, ngrthis :: ReadThisState b, ngrscope :: ReadScopeState a | e) r) -> Eff (ngwmod :: WriteModule | e) Module
+    cache :: forall e a. Name -> Maybe (Options a) -> CacheFactory -> Eff (ngcache :: CACHE | e) Cache
 
-    readScopeState :: forall e a. Scope a -> Eff (ngrscope :: ReadScopeState a | e) (ScopeState a)
+    destroy :: forall e. Cache -> Eff (ngcache :: CACHE | e) Unit
 
-    readThisState :: forall e a. This a -> Eff (ngrthis :: ReadThisState a | e) (ThisState a)
+    get :: forall e a. Key -> Cache -> Eff (ngcache :: CACHE | e) a
 
-    writeScopeState :: forall e a b. ScopeState b -> Scope a -> Eff (ngwscope :: WriteScopeState a | e) (Scope b)
+    info :: forall e a. Cache -> Eff (ngcache :: CACHE | e) { size :: Number, id :: String | a }
 
-    writeThisState :: forall e a b. ThisState b -> This a -> Eff (ngwthis :: WriteThisState a | e) (This b)
+    put :: forall e a. Key -> a -> Cache -> Eff (ngcache :: CACHE | e) a
 
+    remove :: forall e a. Key -> Cache -> Eff (ngcache :: CACHE | e) Unit
 
-## Module Angular.Directive
-
-### Types
-
-    data Compile e a where
-      FnCompile :: CompileFn e a -> Compile e a
-      DefaultCompile :: Compile e a
-
-    type CompileFn e a = Element -> Attributes -> Eff e (Link e a)
-
-    type Controller  = Unit
-
-    data DirectiveController e where
-      NamedController :: Prim.String -> DirectiveController e
-      DirectiveNameController :: DirectiveController e
-      ConstructorFnController :: Eff (i :: InjectDependency | e) Unit -> DirectiveController e
-      DefaultDirectiveController :: DirectiveController e
-
-    type DirectiveDefinition e f g a b c = { link :: Link g c, compile :: Compile f b, transclude :: Transclude, replace :: Prim.Boolean, templateUrl :: TemplateUrl, template :: Template, restrict :: [Restrict], controllerAs :: Maybe Prim.String, require :: [Require], controller :: DirectiveController e, scope :: DirectiveScope, terminal :: Prim.Boolean, priority :: Prim.Number }
-
-    data DirectiveScope  where
-      NewScope :: DirectiveScope 
-      SameScope :: DirectiveScope 
-      IsolateScope :: [ScopeBinding] -> DirectiveScope 
-
-    data Link e a where
-      PostLink :: LinkFn e a -> Link e a
-      PrePostLink :: LinkFn e a -> LinkFn e a -> Link e a
-      DefaultLink :: Link e a
-
-    type LinkFn e a = Scope a -> Element -> Attributes -> [Controller] -> Maybe TranscludeFn -> Eff e Unit
-
-    data Require  where
-      ElementRequire :: Prim.String -> Require 
-      OptionalElementRequire :: Prim.String -> Require 
-      ParentElementRequire :: Prim.String -> Require 
-      OptionalParentElementRequire :: Prim.String -> Require 
-
-    data Restrict  where
-      RestrictElementName :: Restrict 
-      RestrictAttribute :: Restrict 
-      RestrictClass :: Restrict 
-      RestrictComment :: Restrict 
-
-    data ScopeBinding  where
-      UnidirectionalBinding :: Prim.String -> Maybe Prim.String -> ScopeBinding 
-      BidirectionalBinding :: Prim.String -> Maybe Prim.String -> ScopeBinding 
-      OptionalBidirectionalBinding :: Prim.String -> Maybe Prim.String -> ScopeBinding 
-      ExpressionBinding :: Prim.String -> Maybe Prim.String -> ScopeBinding 
-
-    data Template  where
-      StringTemplate :: Prim.String -> Template 
-      FnTemplate :: TemplateFn Prim.String -> Template 
-      DefaultTemplate :: Template 
-
-    type TemplateFn a = Element -> Attributes -> a
-
-    data TemplateUrl  where
-      UrlTemplateUrl :: Url -> TemplateUrl 
-      FnTemplateUrl :: TemplateFn Url -> TemplateUrl 
-      DefaultTemplateUrl :: TemplateUrl 
-
-    data Transclude  where
-      ContentTransclude :: Transclude 
-      NoContentTransclude :: Transclude 
-      ElementTransclude :: Transclude 
-
-    type TranscludeFn  = Unit
-
-    type Url  = Prim.String
-
-
-### Values
-
-    bidirectionalBinding :: Prim.String -> ScopeBinding
-
-    bidirectionalBinding' :: Prim.String -> Prim.String -> ScopeBinding
-
-    compile :: forall e a. CompileFn e a -> Compile e a
-
-    controller :: forall e. Eff (i :: InjectDependency | e) Unit -> DirectiveController e
-
-    defn :: forall e f g a b c. DirectiveDefinition e f g a b c
-
-    directive :: forall e f g h i a b c. Prim.String -> Module -> Eff (nginj :: InjectDependency | e) (DirectiveDefinition f g h a b c) -> Eff (ngwmod :: WriteModule | i) Module
-
-    directiveNameController :: forall e. DirectiveController e
-
-    expressionBinding :: Prim.String -> ScopeBinding
-
-    expressionBinding' :: Prim.String -> Prim.String -> ScopeBinding
-
-    isolateScope :: [ScopeBinding] -> DirectiveScope
-
-    namedController :: forall e. Prim.String -> DirectiveController e
-
-    newScope :: DirectiveScope
-
-    optionalBidirectionalBinding :: Prim.String -> ScopeBinding
-
-    optionalBidirectionalBinding' :: Prim.String -> Prim.String -> ScopeBinding
-
-    postLink :: forall e a. LinkFn e a -> Link e a
-
-    prePostLink :: forall e a. LinkFn e a -> LinkFn e a -> Link e a
-
-    sameScope :: DirectiveScope
-
-    template :: Prim.String -> Template
-
-    templateFn :: TemplateFn Prim.String -> Template
-
-    templateUrl :: Url -> TemplateUrl
-
-    templateUrlFn :: TemplateFn Url -> TemplateUrl
-
-    unidirectionalBinding :: Prim.String -> ScopeBinding
-
-    unidirectionalBinding' :: Prim.String -> Prim.String -> ScopeBinding
+    removeAll :: forall e. Cache -> Eff (ngcache :: CACHE | e) Unit
 
 
 ## Module Angular.Element
 
 ### Types
-
-    type Controller a = Unit
 
     data DeregisterHandler :: # ! -> *
 
@@ -207,13 +86,13 @@
 
 ### Values
 
-    (!!) :: Element -> Prim.Number -> Maybe Node
+    (!!) :: Element -> Number -> Maybe Node
 
-    addClass :: forall e. Prim.String -> Element -> Eff (ngel :: El | e) Element
+    addClass :: forall e. String -> Element -> Eff (ngel :: El | e) Element
 
     after :: forall e. Element -> Element -> Eff (ngel :: El | e) Element
 
-    bind :: forall e f. Prim.String -> Handler f -> Element -> Eff (ngel :: El | e) (DeregisterHandler f)
+    bind :: forall e f. String -> Handler f -> Element -> Eff (ngel :: El | e) (DeregisterHandler f)
 
     children :: forall e. Element -> Eff (ngel :: El | e) Element
 
@@ -221,31 +100,29 @@
 
     contents :: forall e. Element -> Eff (ngel :: El | e) Element
 
-    controller :: forall e a. Maybe Prim.String -> Element -> Eff (ngel :: El | e) (Maybe (Controller a))
+    controller :: forall e a. Maybe String -> Element -> Eff (ngel :: El | e) (Maybe a)
 
-    element :: forall e. Prim.String -> Eff e Element
+    element :: forall e. String -> Eff e Element
 
     empty :: forall e. Element -> Eff (ngel :: El | e) Element
 
-    eq :: forall e. Prim.Number -> Element -> Eff (ngel :: El | e) Element
+    eq :: forall e. Number -> Element -> Eff (ngel :: El | e) Element
 
-    find :: forall e. Prim.Number -> Element -> Eff (ngel :: El | e) Element
+    find :: forall e. Number -> Element -> Eff (ngel :: El | e) Element
 
-    getAllData :: forall e a. Element -> Eff (ngel :: El | e) {  | a }
+    getAttr :: forall e. String -> Element -> Eff (ngel :: El | e) (Maybe String)
 
-    getAttr :: forall e. Prim.String -> Element -> Eff (ngel :: El | e) (Maybe Prim.String)
+    getCss :: forall e. String -> Element -> Eff (ngel :: El | e) (Maybe String)
 
-    getCss :: forall e. Prim.String -> Element -> Eff (ngel :: El | e) (Maybe Prim.String)
+    getData :: forall e a. String -> Element -> Eff (ngel :: El | e) (Maybe a)
 
-    getData :: forall e a. Prim.String -> Element -> Eff (ngel :: El | e) (Maybe a)
+    getProp :: forall e. String -> Element -> Eff (ngel :: El | e) (Maybe String)
 
-    getProp :: forall e. Prim.String -> Element -> Eff (ngel :: El | e) (Maybe Prim.String)
+    getVal :: forall e. Element -> Eff (ngel :: El | e) (Maybe String)
 
-    getVal :: forall e. Element -> Eff (ngel :: El | e) (Maybe Prim.String)
+    hasClass :: forall e. String -> Element -> Eff (ngel :: El | e) Boolean
 
-    hasClass :: forall e. Prim.String -> Element -> Eff (ngel :: El | e) Prim.Boolean
-
-    html :: forall e. Element -> Eff (ngel :: El | e) Prim.String
+    html :: forall e. Element -> Eff (ngel :: El | e) String
 
     inheritedData :: forall e a. Element -> Eff (ngel :: El | e) {  | a }
 
@@ -255,13 +132,13 @@
 
     next :: forall e. Element -> Eff (ngel :: El | e) Element
 
-    off :: forall e f. Prim.String -> Element -> Eff (ngel :: El | e) Element
+    off :: forall e f. String -> Element -> Eff (ngel :: El | e) Element
 
-    offHandler :: forall e f. Prim.String -> DeregisterHandler f -> Element -> Eff (ngel :: El | e) Element
+    offHandler :: forall e f. String -> DeregisterHandler f -> Element -> Eff (ngel :: El | e) Element
 
-    on :: forall e f. Prim.String -> Handler f -> Element -> Eff (ngel :: El | e) (DeregisterHandler f)
+    on :: forall e f. String -> Handler f -> Element -> Eff (ngel :: El | e) (DeregisterHandler f)
 
-    one :: forall e f. Prim.String -> Handler f -> Element -> Eff (ngel :: El | e) (DeregisterHandler f)
+    one :: forall e f. String -> Handler f -> Element -> Eff (ngel :: El | e) (DeregisterHandler f)
 
     parent :: forall e. Element -> Eff (ngel :: El | e) Element
 
@@ -271,11 +148,11 @@
 
     remove :: forall e. Element -> Eff (ngel :: El | e) Element
 
-    removeAttr :: forall e. Prim.String -> Element -> Eff (ngel :: El | e) Element
+    removeAttr :: forall e. String -> Element -> Eff (ngel :: El | e) Element
 
-    removeClass :: forall e. Prim.String -> Element -> Eff (ngel :: El | e) Element
+    removeClass :: forall e. String -> Element -> Eff (ngel :: El | e) Element
 
-    removeData :: forall e. Prim.String -> Element -> Eff (ngel :: El | e) Element
+    removeData :: forall e. String -> Element -> Eff (ngel :: El | e) Element
 
     replaceWith :: forall e. Element -> Element -> Eff (ngel :: El | e) Element
 
@@ -289,90 +166,127 @@
 
     setAllProp :: forall e a. {  | a } -> Element -> Eff (ngel :: El | e) Element
 
-    setAttr :: forall e. Prim.String -> Prim.String -> Element -> Eff (ngel :: El | e) Element
+    setAttr :: forall e. String -> String -> Element -> Eff (ngel :: El | e) Element
 
-    setCss :: forall e. Prim.String -> Prim.String -> Element -> Eff (ngel :: El | e) Element
+    setCss :: forall e. String -> String -> Element -> Eff (ngel :: El | e) Element
 
-    setData :: forall e a. Prim.String -> a -> Element -> Eff (ngel :: El | e) Element
+    setData :: forall e a. String -> a -> Element -> Eff (ngel :: El | e) Element
 
-    setProp :: forall e. Prim.String -> Prim.String -> Element -> Eff (ngel :: El | e) Element
+    setProp :: forall e. String -> String -> Element -> Eff (ngel :: El | e) Element
 
-    setVal :: forall e. Prim.String -> Element -> Eff (ngel :: El | e) Element
+    setVal :: forall e. String -> Element -> Eff (ngel :: El | e) Element
 
-    text :: forall e. Element -> Eff (ngel :: El | e) Prim.String
+    toggleClass :: forall e. String -> Boolean -> Element -> Eff (ngel :: El | e) Element
 
-    toggleClass :: forall e. Prim.String -> Prim.Boolean -> Element -> Eff (ngel :: El | e) Element
+    triggerHandler :: forall e a. String -> [a] -> Element -> Eff (ngel :: El | e) Element
 
-    triggerHandler :: forall e a. Prim.String -> [a] -> Element -> Eff (ngel :: El | e) Element
+    unbind :: forall e f. String -> Element -> Eff (ngel :: El | e) Element
 
-    unbind :: forall e f. Prim.String -> Element -> Eff (ngel :: El | e) Element
-
-    unbindHandler :: forall e f. Prim.String -> DeregisterHandler f -> Element -> Eff (ngel :: El | e) Element
+    unbindHandler :: forall e f. String -> DeregisterHandler f -> Element -> Eff (ngel :: El | e) Element
 
     wrap :: forall e. Element -> Element -> Eff (ngel :: El | e) Element
+
+
+## Module Angular.FormController
+
+### Types
+
+    data FormController :: *
+
+    data FormCtrl :: !
+
+
+### Values
+
+    addControl :: forall e a. NgModelController a -> FormController -> Eff (ngform :: FormCtrl | e) Unit
+
+    dirty :: forall e. FormController -> Eff (ngform :: FormCtrl | e) Boolean
+
+    error :: forall e a. FormController -> Eff (ngform :: FormCtrl | e) {  | a }
+
+    invalid :: forall e. FormController -> Eff (ngform :: FormCtrl | e) Boolean
+
+    pristine :: forall e. FormController -> Eff (ngform :: FormCtrl | e) Boolean
+
+    removeControl :: forall e a. NgModelController a -> FormController -> Eff (ngform :: FormCtrl | e) Unit
+
+    setDirty :: forall e. FormController -> Eff (ngform :: FormCtrl | e) Unit
+
+    setPristine :: forall e. FormController -> Eff (ngform :: FormCtrl | e) Unit
+
+    setValidity :: forall e a. ValidationErrorKey -> Boolean -> NgModelController a -> FormController -> Eff (ngform :: FormCtrl | e) Unit
+
+    valid :: forall e. FormController -> Eff (ngform :: FormCtrl | e) Boolean
 
 
 ## Module Angular.Http
 
 ### Types
 
-    type Config a b = { "data" :: Maybe b, params :: Maybe a, url :: Url, method :: Method }
-
-    data HTTP :: !
+    type Config a b c = { responseType :: ResponseType, withCredentials :: Boolean, timeout :: Either Number (Promise c), cache :: Either Boolean Cache, xsrfCookieName :: String, xsrfHeaderName :: String, headers :: Headers, "data" :: RequestData b, params :: {  | a }, url :: Url, method :: Method }
 
     data Http :: *
 
-    data Method  where
+    type HttpResponse e r a b c = HttpEff e (Promise (Response r a b c))
 
-    type Response a b c = { statusText :: Prim.String, config :: Config a b, headers :: [Prim.String] -> Prim.String, status :: Status, "data" :: c }
-
-    data ResponseType  where
-
-    data Status  where
-
-    type Url  = Prim.String
-
-
-### Type Class Instances
-
-    instance showMethod :: Show Method
-
-    instance showResponseType :: Show ResponseType
+    type Response r a b c = { statusText :: String, config :: Config a b c, headers :: [String] -> String, status :: Status, "data" :: ResponseData r }
 
 
 ### Values
 
-    defaultConfig :: forall a b. Config a b
+    config :: forall a b c. Config a b c
 
-    delete' :: forall e a b c. Url -> Maybe (Config a b) -> Http -> Eff (nghttp :: HTTP | e) (Promise (Response a b c))
+    del :: forall e r a b c. Url -> Http -> HttpResponse e r a b c
 
-    get :: forall e a b c. Url -> Maybe (Config a b) -> Http -> Eff (nghttp :: HTTP | e) (Promise (Response a b c))
+    del' :: forall e r a b c. Url -> Config a b c -> Http -> HttpResponse e r a b c
 
-    head :: forall e a b c. Url -> Maybe (Config a b) -> Http -> Eff (nghttp :: HTTP | e) (Promise (Response a b c))
+    get :: forall e r a b c. Url -> Http -> HttpResponse e r a b c
 
-    http :: forall e a b c. (Show Method) => Config a b -> Http -> Eff (nghttp :: HTTP | e) (Promise (Response a b c))
+    get' :: forall e r a b c. Url -> Config a b c -> Http -> HttpResponse e r a b c
 
-    injHttp :: forall e. Eff (nginj :: InjectDependency | e) Http
+    head :: forall e r a b c. Url -> Http -> HttpResponse e r a b c
 
-    jsonp :: forall e a b c. Url -> Maybe (Config a b) -> Http -> Eff (nghttp :: HTTP | e) (Promise (Response a b c))
+    head' :: forall e r a b c. Url -> Config a b c -> Http -> HttpResponse e r a b c
 
-    post :: forall e a b c. Url -> b -> Maybe (Config a b) -> Http -> Eff (nghttp :: HTTP | e) (Promise (Response a b c))
+    http :: forall e r a b c. Config a b c -> Http -> HttpResponse e r a b c
 
-    put :: forall e a b c. Url -> b -> Maybe (Config a b) -> Http -> Eff (nghttp :: HTTP | e) (Promise (Response a b c))
+    jsonp :: forall e r a b c. Url -> Http -> HttpResponse e r a b c
+
+    jsonp' :: forall e r a b c. Url -> Config a b c -> Http -> HttpResponse e r a b c
+
+    post :: forall e r a b c. Url -> RequestData b -> Http -> HttpResponse e r a b c
+
+    post' :: forall e r a b c. Url -> RequestData b -> Config a b c -> Http -> HttpResponse e r a b c
+
+    put :: forall e r a b c. Url -> RequestData b -> Http -> HttpResponse e r a b c
+
+    put' :: forall e r a b c. Url -> RequestData b -> Config a b c -> Http -> HttpResponse e r a b c
 
 
 ## Module Angular.Injector
 
 ### Types
 
-    data InjectDependency :: !
+    data Inj :: !
+
+    type InjEff e a = Eff (nginj :: Inj | e) a
 
     data Injector :: *
 
 
 ### Values
 
-    injector :: forall e. Eff e Injector
+    annotate :: forall e a. a -> Injector -> InjEff e [String]
+
+    get :: forall e a. String -> Injector -> InjEff e a
+
+    has :: forall e. String -> Injector -> InjEff e Boolean
+
+    injector :: forall e. [String] -> InjEff e Injector
+
+    instantiate :: forall e r a b. a -> Maybe {  | b } -> Injector -> InjEff e r
+
+    invoke :: forall e r a b c. a -> Maybe {  | b } -> Maybe {  | c } -> Injector -> InjEff e r
 
 
 ## Module Angular.Location
@@ -381,16 +295,16 @@
 
     data Loc :: !
 
+    type LocEff e a = Eff (ngloc :: Loc | e) a
+
     data Location :: *
 
 
 ### Values
 
-    getPath :: forall e. Location -> Eff (ngloc :: Loc | e) Prim.String
+    getPath :: forall e. Location -> LocEff e String
 
-    location :: forall e. Eff (nginj :: InjectDependency | e) Location
-
-    setPath :: forall e. Prim.String -> Location -> Eff (ngloc :: Loc | e) Prim.String
+    setPath :: forall e. String -> Location -> LocEff e String
 
 
 ## Module Angular.Module
@@ -399,28 +313,106 @@
 
     data Module :: *
 
+    type Read e = Eff (ngrmod :: ReadModule | e) Module
+
     data ReadModule :: !
 
-    data RegisterModule :: !
+    type Register e = Eff (nggmod :: RegisterToModule | e) Module
+
+    data RegisterToModule :: !
+
+    type Write e = Eff (ngwmod :: WriteModule | e) Module
 
     data WriteModule :: !
 
 
 ### Values
 
-    constant :: forall e a. Prim.String -> a -> Module -> Eff (nggmod :: RegisterModule | e) Module
+    animation :: forall e a. String -> a -> Module -> Register e
 
-    factory :: forall e a. Prim.String -> Eff (nginj :: InjectDependency | e) {  | a } -> Module -> Eff (nggmod :: RegisterModule | e) Module
+    config :: forall e a. a -> Module -> Register e
 
-    getModule :: forall e. Prim.String -> Eff (ngrmod :: ReadModule | e) Module
+    constant :: forall e a. String -> a -> Module -> Register e
 
-    newModule :: forall e. Prim.String -> [Prim.String] -> Eff (ngwmod :: WriteModule | e) Module
+    controller :: forall e a. String -> a -> Module -> Register e
 
-    provider :: forall e a b. Prim.String -> Eff (nginj :: InjectDependency | e) { "$get" :: Eff (nginj :: InjectDependency | e) a | b } -> Module -> Eff (nggmod :: RegisterModule | e) Module
+    directive :: forall e a. String -> a -> Module -> Register e
 
-    service :: forall e a. Prim.String -> Eff (nginj :: InjectDependency | e) {  | a } -> Module -> Eff (nggmod :: RegisterModule | e) Module
+    factory :: forall e a. String -> a -> Module -> Register e
 
-    value :: forall e a. Prim.String -> a -> Module -> Eff (nggmod :: RegisterModule | e) Module
+    filter :: forall e a. String -> a -> Module -> Register e
+
+    ngmodule :: forall e. String -> Read e
+
+    ngmodule' :: forall e. String -> [String] -> Write e
+
+    provider :: forall e a. String -> a -> Module -> Register e
+
+    run :: forall e a. a -> Module -> Register e
+
+    service :: forall e a. String -> a -> Module -> Register e
+
+    value :: forall e a. String -> a -> Module -> Register e
+
+
+## Module Angular.NgModelController
+
+### Types
+
+    type Formatter a = a -> String
+
+    data NgModelController :: * -> *
+
+    data NgModelCtrl :: !
+
+    type Parser a = String -> Maybe a
+
+    type ValidationErrorKey  = String
+
+
+### Values
+
+    appendFormatters :: forall e a. [Formatter a] -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+
+    appendParsers :: forall e a. [Parser a] -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+
+    appendViewChangeListeners :: forall e a. [Eff e Unit] -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+
+    dirty :: forall e a. NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Boolean
+
+    error :: forall e a b. NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) {  | b }
+
+    invalid :: forall e a. NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Boolean
+
+    isEmpty :: forall e a. a -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Boolean
+
+    modelValue :: forall e a. NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) a
+
+    prependFormatters :: forall e a. [Formatter a] -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+
+    prependParsers :: forall e a. [Parser a] -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+
+    prependViewChangeListeners :: forall e a. [Eff e Unit] -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+
+    pristine :: forall e a. NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Boolean
+
+    render :: forall e a. NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+
+    setIsEmpty :: forall e a b. (b -> Eff (ngmodel :: NgModelCtrl | e) Boolean) -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) (NgModelController b)
+
+    setModelValue :: forall e a b. b -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) (NgModelController b)
+
+    setPristine :: forall e a. NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+
+    setRender :: forall e a. Eff (ngmodel :: NgModelCtrl | e) Unit -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+
+    setValidity :: forall e a. ValidationErrorKey -> Boolean -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+
+    setViewValue :: forall e a. String -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+
+    valid :: forall e a. NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Boolean
+
+    viewValue :: forall e a. NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) String
 
 
 ## Module Angular.Q
@@ -470,13 +462,13 @@
 
 ### Values
 
-    pushAllSTArray :: forall a h r. STArray h a -> [a] -> Eff (st :: ST h | r) Prim.Number
+    pushAllSTArray :: forall a h r. STArray h a -> [a] -> Eff (st :: ST h | r) Number
 
-    pushSTArray :: forall a h r. STArray h a -> a -> Eff (st :: ST h | r) Prim.Number
+    pushSTArray :: forall a h r. STArray h a -> a -> Eff (st :: ST h | r) Number
 
     readSTArray :: forall a h r. STArray h a -> Eff (st :: ST h | r) [a]
 
-    spliceSTArray :: forall a h r. STArray h a -> Prim.Number -> Prim.Number -> [a] -> Eff (st :: ST h | r) [a]
+    spliceSTArray :: forall a h r. STArray h a -> Number -> Number -> [a] -> Eff (st :: ST h | r) [a]
 
     writeSTArray :: forall a h r. STArray h a -> [a] -> Eff (st :: ST h | r) [a]
 
@@ -485,20 +477,27 @@
 
 ### Types
 
-    data ApplyExpr e r a where
-      FnApplyExpr :: Scope a -> Eff e r -> ApplyExpr e r a
-      StringApplyExpr :: Prim.String -> ApplyExpr e r a
-      DefaultApplyExpr :: ApplyExpr e r a
+    data ApplyExpr e r a
 
-    type Event e a b = { defaultPrevented :: Prim.Boolean, preventDefault :: Eff e Unit, stopPropagation :: Eff e Unit, name :: Prim.String, currentScope :: Scope b, targetScope :: Scope a }
+    type Event e a b = { defaultPrevented :: Boolean, preventDefault :: Eff e Unit, stopPropagation :: Eff e Unit, name :: String, currentScope :: Scope b, targetScope :: Scope a }
 
     data OnDeregistration :: *
+
+    type Read e a = Eff (ngrscope :: ReadScope | e) {  | a }
+
+    data ReadScope :: !
+
+    type ReadWrite e r = Eff (ngwscope :: WriteScope, ngrscope :: ReadScope | e) r
 
     data Scope :: # * -> *
 
     data WatchDeregistration :: *
 
     type WatchListener e a b = a -> a -> Scope b -> Eff e Unit
+
+    type Write e = Eff (ngwscope :: WriteScope | e) Unit
+
+    data WriteScope :: !
 
 
 ### Values
@@ -507,7 +506,7 @@
 
     applyExpr :: forall e r a. (Scope a -> Eff e r) -> ApplyExpr e r a
 
-    broadcast :: forall e a b c. Prim.String -> a -> Scope b -> Eff e (Event e b c)
+    broadcast :: forall e a b c. String -> a -> Scope b -> Eff e (Event e b c)
 
     defaultApplyExpr :: forall e r a. ApplyExpr e r a
 
@@ -519,34 +518,66 @@
 
     digest :: forall e a. Scope a -> Eff e Unit
 
-    emit :: forall e a b c. Prim.String -> a -> Scope b -> Eff e (Event e b c)
+    emit :: forall e a b c. String -> a -> Scope b -> Eff e (Event e b c)
 
-    evalAsync :: forall e r a. Maybe (Scope a -> Eff e r) -> Scope a -> Eff e Unit
+    evalAsync :: forall e r a. Maybe (Scope a -> Eff e r) -> Scope a -> Eff e r
 
-    evalSync :: forall e r a b c. Maybe (Scope a -> Eff e r) -> Maybe {  | b } -> Scope a -> Eff e r
+    evalSync :: forall e r a b. Maybe (Scope a -> Eff e r) -> Maybe {  | b } -> Scope a -> Eff e r
 
-    id :: forall a. Scope a -> Prim.String
+    extendScope :: forall e a b. {  | b } -> Scope a -> Write e
 
-    newScope :: forall a b. Prim.Boolean -> Scope a -> Scope b
+    id :: forall a. Scope a -> String
 
-    on :: forall e a b c. Prim.String -> (Event e a b -> c -> Eff e Unit) -> Scope b -> Eff e OnDeregistration
+    modifyScope :: forall e f a b. ({  | a } -> Eff f {  | b }) -> Scope a -> ReadWrite e Unit
+
+    newScope :: forall a b. Boolean -> Scope a -> Scope b
+
+    on :: forall e a b c. String -> (Event e a b -> c -> Eff e Unit) -> Scope b -> Eff e OnDeregistration
 
     parent :: forall a b. Scope a -> Maybe (Scope b)
 
+    readScope :: forall e a. Scope a -> Read e a
+
     root :: forall a b. Scope a -> Scope b
 
-    stringApplyExpr :: forall e r a. Prim.String -> ApplyExpr e r a
+    stringApplyExpr :: forall e r a. String -> ApplyExpr e r a
 
-    watch :: forall e a b. Prim.String -> Maybe (WatchListener e a b) -> Prim.Boolean -> Scope b -> Eff e WatchDeregistration
+    watch :: forall e a b. String -> Maybe (WatchListener e a b) -> Boolean -> Scope b -> Eff e WatchDeregistration
 
-    watchCollection :: forall e a b. Prim.String -> WatchListener e a b -> Scope b -> Eff e WatchDeregistration
+    watchCollection :: forall e a b. String -> WatchListener e a b -> Scope b -> Eff e WatchDeregistration
+
+    writeScope :: forall e a b. String -> b -> Scope a -> Write e
+
+
+## Module Angular.This
+
+### Types
+
+    type Read e a = Eff (ngrthis :: ReadThis | e) {  | a }
+
+    type ReadWrite e r = Eff (ngwthis :: WriteThis, ngrthis :: ReadThis | e) r
+
+    data This :: # * -> *
+
+    type Write e = Eff (ngwthis :: WriteThis | e) Unit
+
+
+### Values
+
+    extendThis :: forall e a b. {  | b } -> This a -> Write e
+
+    modifyThis :: forall e f a b. ({  | a } -> Eff f {  | b }) -> This a -> ReadWrite e Unit
+
+    readThis :: forall e a. This a -> Read e a
+
+    writeThis :: forall e a b. String -> b -> This a -> Write e
 
 
 ## Module DOM.Event
 
 ### Types
 
-    type Event  = { keyCode :: Prim.Number }
+    type Event  = { keyCode :: Number }
 
 
 ## Module DOM.Node
@@ -561,6 +592,204 @@
 ### Values
 
     focus :: forall e. Node -> Eff (dom :: DOM | e) Unit
+
+
+## Module DOM.Types
+
+### Types
+
+    data ArrayBuffer :: *
+
+    data Blob :: *
+
+    data Document :: *
+
+    data MozBlob :: *
+
+    data MozChunkedArrayBuffer :: *
+
+    data MozChunkedText :: *
+
+
+## Module Angular.Http.Internal
+
+### Types
+
+    type ConfEff e r = Eff (nghttp :: HTTP | e) r
+
+    data ForeignConfig :: *
+
+    data ForeignResponse :: *
+
+
+### Values
+
+    foreignConfig :: forall e. ConfEff e ForeignConfig
+
+    getConfigCache :: ForeignConfig -> Either Boolean Cache
+
+    getConfigHeaders :: ForeignConfig -> Headers
+
+    getConfigMethod :: ForeignConfig -> Method
+
+    getConfigParams :: forall a. ForeignConfig -> {  | a }
+
+    getConfigRequestData :: forall e a. ForeignConfig -> RequestData a
+
+    getConfigResponseType :: ForeignConfig -> ResponseType
+
+    getConfigTimeout :: forall r. ForeignConfig -> Either Number (Promise r)
+
+    getConfigUrl :: ForeignConfig -> Url
+
+    getConfigWithCredentials :: ForeignConfig -> Boolean
+
+    getConfigXsrfCookieName :: ForeignConfig -> String
+
+    getConfigXsrfHeaderName :: ForeignConfig -> String
+
+    getResponseConfig :: ForeignResponse -> ForeignConfig
+
+    getResponseData :: forall a. ResponseType -> ForeignResponse -> ResponseData a
+
+    getResponseHeaders :: ForeignResponse -> [String] -> String
+
+    getResponseStatus :: ForeignResponse -> Status
+
+    getResponseStatusText :: ForeignResponse -> String
+
+    setConfigCache :: forall e. Either Boolean Cache -> ForeignConfig -> ConfEff e Unit
+
+    setConfigHeaders :: forall e. Headers -> ForeignConfig -> ConfEff e Unit
+
+    setConfigMethod :: forall e. Method -> ForeignConfig -> ConfEff e Unit
+
+    setConfigParams :: forall e a. {  | a } -> ForeignConfig -> ConfEff e Unit
+
+    setConfigRequestData :: forall e a. RequestData a -> ForeignConfig -> ConfEff e Unit
+
+    setConfigResponseType :: forall e. ResponseType -> ForeignConfig -> ConfEff e Unit
+
+    setConfigTimeout :: forall e a. Either Number (Promise a) -> ForeignConfig -> ConfEff e Unit
+
+    setConfigUrl :: forall e. Url -> ForeignConfig -> ConfEff e Unit
+
+    setConfigWithCredentials :: forall e. Boolean -> ForeignConfig -> ConfEff e Unit
+
+    setConfigXsrfCookieName :: forall e. String -> ForeignConfig -> ConfEff e Unit
+
+    setConfigXsrfHeaderName :: forall e. String -> ForeignConfig -> ConfEff e Unit
+
+
+## Module Angular.Http.Types
+
+### Types
+
+    data ForeignCache :: *
+
+    data ForeignHeaders :: *
+
+    data ForeignRequestData :: *
+
+    data ForeignResponseData :: *
+
+    data ForeignTimeout :: *
+
+    data HTTP :: !
+
+    type Header  = Tuple String (Either String (Unit -> String))
+
+    newtype Headers where
+      Headers :: [Header] -> Headers
+
+    data Method where
+      GET :: Method
+      POST :: Method
+      PUT :: Method
+      DELETE :: Method
+      PATCH :: Method
+      HEAD :: Method
+      OPTIONS :: Method
+      JSONP :: Method
+
+    data RequestData a where
+      NoRequestData :: RequestData a
+      StringRequestData :: String -> RequestData a
+      ObjectRequestData :: a -> RequestData a
+
+    type RequestDataFn a = { objectRequestData :: a -> RequestData a, stringRequestData :: String -> RequestData a, noRequestData :: RequestData a }
+
+    data ResponseData a where
+      NoResponseData :: ResponseData a
+      DefaultResponseData :: String -> ResponseData a
+      ArrayBufferResponseData :: D.ArrayBuffer -> ResponseData a
+      BlobResponseData :: D.Blob -> ResponseData a
+      DocumentResponseData :: D.Document -> ResponseData a
+      JsonResponseData :: a -> ResponseData a
+      TextResponseData :: String -> ResponseData a
+      MozBlobResponseData :: D.MozBlob -> ResponseData a
+      MozChunkedTextResponseData :: D.MozChunkedText -> ResponseData a
+      MozChunkedArrayBufferResponseData :: D.MozChunkedArrayBuffer -> ResponseData a
+
+    type ResponseDataFn a = { mozChunkedArrayBufferResponseData :: D.MozChunkedArrayBuffer -> ResponseData a, mozChunkedTextResponseData :: D.MozChunkedText -> ResponseData a, mozBlobResponseData :: D.MozBlob -> ResponseData a, textResponseData :: String -> ResponseData a, jsonResponseData :: a -> ResponseData a, documentResponseData :: D.Document -> ResponseData a, blobResponseData :: D.Blob -> ResponseData a, arrayBufferResponseData :: D.ArrayBuffer -> ResponseData a, defaultResponseData :: String -> ResponseData a, noResponseData :: ResponseData a }
+
+    data ResponseType where
+      Default :: ResponseType
+      ArrayBuffer :: ResponseType
+      Blob :: ResponseType
+      Document :: ResponseType
+      Json :: ResponseType
+      Text :: ResponseType
+      MozBlob :: ResponseType
+      MozChunkedText :: ResponseType
+      MozChunkedArrayBuffer :: ResponseType
+
+    data Status where
+      OK :: Status
+      Created :: Status
+      NoContent :: Status
+      BadRequest :: Status
+      Unauthorized :: Status
+      Forbidden :: Status
+      NotFound :: Status
+      InternalServerError :: Status
+      OtherStatus :: Number -> Status
+
+    type Url  = String
+
+
+### Type Class Instances
+
+    instance showMethod :: Show Method
+
+    instance showResponseType :: Show ResponseType
+
+
+### Values
+
+    cataRequestData :: forall a b. b -> (String -> b) -> (a -> b) -> RequestData a -> b
+
+    fnHeader :: String -> (Unit -> String) -> Header
+
+    readCacheFn :: Fn3 (Boolean -> Either Boolean Cache) (Cache -> Either Boolean Cache) ForeignCache (Either Boolean Cache)
+
+    readHeadersFn :: forall a b. Fn4 (String -> Either String (Unit -> String)) ((Unit -> String) -> Either String (Unit -> String)) (String -> Either String (Unit -> String) -> Header) ForeignHeaders Headers
+
+    readMethod :: String -> Method
+
+    readRequestDataFn :: forall a. Fn2 (RequestDataFn a) ForeignRequestData (RequestData a)
+
+    readResponseDataFn :: forall a. Fn3 (ResponseDataFn a) String ForeignResponseData (ResponseData a)
+
+    readResponseType :: String -> ResponseType
+
+    readStatus :: Number -> Status
+
+    readTimeoutFn :: forall r. Fn3 (Number -> Either Number (Promise r)) (Promise r -> Either Number (Promise r)) ForeignTimeout (Either Number (Promise r))
+
+    stringHeader :: String -> String -> Header
+
+    writeRequestData :: forall a. RequestData a -> ForeignRequestData
 
 
 
