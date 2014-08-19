@@ -1,7 +1,7 @@
 module Angular.Location
   ( Location()
-  , Loc()
   , LocEff()
+  , NgLoc()
   , getPath
   , setPath
   ) where
@@ -10,9 +10,9 @@ import Control.Monad.Eff
 
 foreign import data Location :: *
 
-foreign import data Loc :: !
+foreign import data NgLoc :: !
 
-type LocEff e a = Eff (ngloc :: Loc | e) a
+type LocEff e a = Eff (ngloc :: NgLoc | e) a
 
 foreign import getPath
   " function getPath(loc){ \

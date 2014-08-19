@@ -1,6 +1,7 @@
 module Angular.NgModelController
  ( NgModelController()
- , NgModelCtrl()
+ , NgModel()
+ , NgModelEff()
  , Parser()
  , Formatter()
  , ValidationErrorKey()
@@ -33,7 +34,9 @@ import Data.Maybe
 
 foreign import data NgModelController :: * -> *
 
-foreign import data NgModelCtrl :: !
+foreign import data NgModel :: !
+
+type NgModelEff e r = Eff (ngmodel :: NgModel | e) r
 
 type ValidationErrorKey = String
 
@@ -47,7 +50,7 @@ foreign import render
   \     return $ctrl.$render(); \
   \   }; \
   \ } "
-  :: forall e a. NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+  :: forall e a. NgModelController a -> NgModelEff e Unit
 
 foreign import setRender
   " function setRender(render){ \
@@ -56,7 +59,7 @@ foreign import setRender
   \     return {}; \
   \   }; \
   \ } "
-  :: forall e a. Eff (ngmodel :: NgModelCtrl | e) Unit -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+  :: forall e a. NgModelEff e Unit -> NgModelController a -> NgModelEff e Unit
 
 foreign import isEmpty
   " function isEmpty(value){ \
@@ -64,7 +67,7 @@ foreign import isEmpty
   \     return $ctrl.$isEmpty(value); \
   \   }; \
   \ } "
-  :: forall e a. a -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Boolean
+  :: forall e a. a -> NgModelController a -> NgModelEff e Boolean
 
 foreign import setIsEmpty
   " function setIsEmpty(isEmpty){ \
@@ -73,7 +76,7 @@ foreign import setIsEmpty
   \     return $ctrl; \
   \   }; \
   \ } "
-  :: forall e a b. (b -> Eff (ngmodel :: NgModelCtrl | e) Boolean) -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) (NgModelController b)
+  :: forall e a b. (b -> NgModelEff e Boolean) -> NgModelController a -> NgModelEff e (NgModelController b)
 
 foreign import setValidity
   " function setValidity(validationErrorKey){ \
@@ -83,7 +86,7 @@ foreign import setValidity
   \     }; \
   \   }; \
   \ } "
-  :: forall e a. ValidationErrorKey -> Boolean -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+  :: forall e a. ValidationErrorKey -> Boolean -> NgModelController a -> NgModelEff e Unit
 
 foreign import setPristine
   " function setPristine($ctrl){ \
@@ -91,7 +94,7 @@ foreign import setPristine
   \     return $ctrl.$setPristine(); \
   \   }; \
   \ } "
-  :: forall e a. NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+  :: forall e a. NgModelController a -> NgModelEff e Unit
 
 foreign import setViewValue
   " function setViewValue(value){ \
@@ -101,7 +104,7 @@ foreign import setViewValue
   \     }; \
   \   }; \
   \ } "
-  :: forall e a. String -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+  :: forall e a. String -> NgModelController a -> NgModelEff e Unit
 
 foreign import viewValue
   " function viewValue($ctrl){ \
@@ -109,7 +112,7 @@ foreign import viewValue
   \     return $ctrl.$viewValue; \
   \   }; \
   \ } "
-  :: forall e a. NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) String
+  :: forall e a. NgModelController a -> NgModelEff e String
 
 foreign import modelValue
   " function modelValue($ctrl){ \
@@ -117,7 +120,7 @@ foreign import modelValue
   \     return $ctrl.$modelValue; \
   \   }; \
   \ } "
-  :: forall e a. NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) a
+  :: forall e a. NgModelController a -> NgModelEff e a
 
 foreign import setModelValue
   " function setModelValue(value){ \
@@ -128,7 +131,7 @@ foreign import setModelValue
   \     }; \
   \   }; \
   \ } "
-  :: forall e a b. b -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) (NgModelController b)
+  :: forall e a b. b -> NgModelController a -> NgModelEff e (NgModelController b)
 
 foreign import appendParsersFn
   " function appendParsersFn(fromMaybe, parsers, $ctrl){ \
@@ -146,9 +149,9 @@ foreign import appendParsersFn
   :: forall e a. Fn3 (a -> Maybe a -> a)
                      [Parser a]
                      (NgModelController a)
-                     (Eff (ngmodel :: NgModelCtrl | e) Unit)
+                     (NgModelEff e Unit)
 
-appendParsers :: forall e a. [Parser a] -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+appendParsers :: forall e a. [Parser a] -> NgModelController a -> NgModelEff e Unit
 appendParsers = runFn3 appendParsersFn fromMaybe
 
 foreign import prependParsersFn
@@ -167,9 +170,9 @@ foreign import prependParsersFn
   :: forall e a. Fn3 (a -> Maybe a -> a)
                      [Parser a]
                      (NgModelController a)
-                     (Eff (ngmodel :: NgModelCtrl | e) Unit)
+                     (NgModelEff e Unit)
 
-prependParsers :: forall e a. [Parser a] -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+prependParsers :: forall e a. [Parser a] -> NgModelController a -> NgModelEff e Unit
 prependParsers = runFn3 prependParsersFn fromMaybe
 
 foreign import appendFormatters
@@ -181,7 +184,7 @@ foreign import appendFormatters
   \     }; \
   \   }; \
   \ } "
-  :: forall e a. [Formatter a] -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+  :: forall e a. [Formatter a] -> NgModelController a -> NgModelEff e Unit
 
 foreign import prependFormatters
   " function prependFormatters(formatters){ \
@@ -192,7 +195,7 @@ foreign import prependFormatters
   \     }; \
   \   }; \
   \ } "
-  :: forall e a. [Formatter a] -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+  :: forall e a. [Formatter a] -> NgModelController a -> NgModelEff e Unit
 
 foreign import appendViewChangeListeners
   " function appendViewChangeListeners(listeners){ \
@@ -203,7 +206,7 @@ foreign import appendViewChangeListeners
   \     }; \
   \   }; \
   \ } "
-  :: forall e a. [Eff e Unit] -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+  :: forall e a. [Eff e Unit] -> NgModelController a -> NgModelEff e Unit
 
 foreign import prependViewChangeListeners
   " function prependViewChangeListeners(listeners){ \
@@ -214,7 +217,7 @@ foreign import prependViewChangeListeners
   \     }; \
   \   }; \
   \ } "
-  :: forall e a. [Eff e Unit] -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+  :: forall e a. [Eff e Unit] -> NgModelController a -> NgModelEff e Unit
 
 foreign import error
   " function error($ctrl){ \
@@ -222,7 +225,7 @@ foreign import error
   \     return $ctrl.$error; \
   \   }; \
   \ } "
-  :: forall e a b. NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) { | b }
+  :: forall e a b. NgModelController a -> NgModelEff e { | b }
 
 foreign import pristine
   " function pristine($ctrl){ \
@@ -230,7 +233,7 @@ foreign import pristine
   \     return $ctrl.$pristine; \
   \   }; \
   \ } "
-  :: forall e a. NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Boolean
+  :: forall e a. NgModelController a -> NgModelEff e Boolean
 
 foreign import dirty
   " function dirty($ctrl){ \
@@ -238,7 +241,7 @@ foreign import dirty
   \     return $ctrl.$dirty; \
   \   }; \
   \ } "
-  :: forall e a. NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Boolean
+  :: forall e a. NgModelController a -> NgModelEff e Boolean
 
 foreign import valid
   " function valid($ctrl){ \
@@ -246,7 +249,7 @@ foreign import valid
   \     return $ctrl.$valid; \
   \   }; \
   \ } "
-  :: forall e a. NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Boolean
+  :: forall e a. NgModelController a -> NgModelEff e Boolean
 
 foreign import invalid
   " function invalid($ctrl){ \
@@ -254,4 +257,4 @@ foreign import invalid
   \     return $ctrl.$invalid; \
   \   }; \
   \ } "
-  :: forall e a. NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Boolean
+  :: forall e a. NgModelController a -> NgModelEff e Boolean

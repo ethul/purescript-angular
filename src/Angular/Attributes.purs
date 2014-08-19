@@ -1,6 +1,7 @@
 module Angular.Attributes
   ( Attributes()
-  , Attr()
+  , NgAttr()
+  , AttrEff()
   , addClass
   , removeClass
   , updateClass
@@ -14,7 +15,9 @@ import Control.Monad.Eff
 
 foreign import data Attributes :: *
 
-foreign import data Attr :: !
+foreign import data NgAttr :: !
+
+type AttrEff e r = Eff (ngattr :: NgAttr | e) r
 
 foreign import addClass
   " function addClass(classVal){ \
@@ -24,7 +27,7 @@ foreign import addClass
   \     }; \
   \   }; \
   \ }"
-  :: forall e. String -> Attributes -> Eff (ngattr :: Attr | e) Unit
+  :: forall e. String -> Attributes -> AttrEff e Unit
 
 foreign import removeClass
   " function removeClass(classVal){ \
@@ -34,7 +37,7 @@ foreign import removeClass
   \     }; \
   \   }; \
   \ }"
-  :: forall e. String -> Attributes -> Eff (ngattr :: Attr | e) Unit
+  :: forall e. String -> Attributes -> AttrEff e Unit
 
 foreign import updateClass
   " function updateClass(newClasses){ \
@@ -46,7 +49,7 @@ foreign import updateClass
   \     }; \
   \   }; \
   \ }"
-  :: forall e. String -> String -> Attributes -> Eff (ngattr :: Attr | e) Unit
+  :: forall e. String -> String -> Attributes -> AttrEff e Unit
 
 foreign import observe
   " function observe(key){ \
@@ -58,7 +61,7 @@ foreign import observe
   \     }; \
   \   }; \
   \ }"
-  :: forall e f. String -> (String -> Eff f Unit) -> Attributes -> Eff (ngattr :: Attr | e) Unit
+  :: forall e f. String -> (String -> Eff f Unit) -> Attributes -> AttrEff e Unit
 
 foreign import set
   " function set(name){ \
@@ -70,7 +73,7 @@ foreign import set
   \     }; \
   \   }; \
   \ }"
-  :: forall e. String -> String -> Attributes -> Eff (ngattr :: Attr | e) Unit
+  :: forall e. String -> String -> Attributes -> AttrEff e Unit
 
 foreign import get
   " function get(attrs){ \
@@ -78,7 +81,7 @@ foreign import get
   \     return attrs; \
   \   }; \
   \ }"
-  :: forall e a. Attributes -> Eff (ngattr :: Attr | e) { | a }
+  :: forall e a. Attributes -> AttrEff e { | a }
 
 foreign import attr
   " function attr(attrs){ \
@@ -86,4 +89,4 @@ foreign import attr
   \     return attrs.$attr; \
   \   }; \
   \ }"
-  :: forall e a. Attributes -> Eff (ngattr :: Attr | e) { | a }
+  :: forall e a. Attributes -> AttrEff e { | a }

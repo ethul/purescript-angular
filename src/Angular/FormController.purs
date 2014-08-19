@@ -1,6 +1,7 @@
 module Angular.FormController
  ( FormController()
- , FormCtrl()
+ , FormEff()
+ , NgForm()
  , addControl
  , removeControl
  , setValidity
@@ -19,7 +20,9 @@ import Angular.NgModelController (NgModelController(), ValidationErrorKey())
 
 foreign import data FormController :: *
 
-foreign import data FormCtrl :: !
+foreign import data NgForm :: !
+
+type FormEff e r = Eff (ngform :: NgForm | e) r
 
 foreign import addControl
   " function addControl(control){ \
@@ -29,7 +32,7 @@ foreign import addControl
   \     }; \
   \   }; \
   \ } "
-  :: forall e a. NgModelController a -> FormController -> Eff (ngform :: FormCtrl | e) Unit
+  :: forall e a. NgModelController a -> FormController -> FormEff e Unit
 
 foreign import removeControl
   " function removeControl(control){ \
@@ -39,7 +42,7 @@ foreign import removeControl
   \     }; \
   \   }; \
   \ } "
-  :: forall e a. NgModelController a -> FormController -> Eff (ngform :: FormCtrl | e) Unit
+  :: forall e a. NgModelController a -> FormController -> FormEff e Unit
 
 foreign import setValidity
   " function setValidity(key){ \
@@ -53,7 +56,7 @@ foreign import setValidity
   \     }; \
   \   }; \
   \ } "
- :: forall e a. ValidationErrorKey -> Boolean -> NgModelController a -> FormController -> Eff (ngform :: FormCtrl | e) Unit
+ :: forall e a. ValidationErrorKey -> Boolean -> NgModelController a -> FormController -> FormEff e Unit
 
 foreign import setDirty
   " function setDirty($ctrl){ \
@@ -61,7 +64,7 @@ foreign import setDirty
   \     return $ctrl.$setDirty(); \
   \   }; \
   \ } "
-  :: forall e. FormController -> Eff (ngform :: FormCtrl | e) Unit
+  :: forall e. FormController -> FormEff e Unit
 
 foreign import setPristine
   " function setPristine($ctrl){ \
@@ -69,7 +72,7 @@ foreign import setPristine
   \     return $ctrl.$setPristine(); \
   \   }; \
   \ } "
-  :: forall e. FormController -> Eff (ngform :: FormCtrl | e) Unit
+  :: forall e. FormController -> FormEff e Unit
 
 foreign import pristine
   " function pristine($ctrl){ \
@@ -77,7 +80,7 @@ foreign import pristine
   \     return $ctrl.$pristine; \
   \   }; \
   \ } "
-  :: forall e. FormController -> Eff (ngform :: FormCtrl | e) Boolean
+  :: forall e. FormController -> FormEff e Boolean
 
 foreign import dirty
   " function dirty($ctrl){ \
@@ -85,7 +88,7 @@ foreign import dirty
   \     return $ctrl.$dirty; \
   \   }; \
   \ } "
-  :: forall e. FormController -> Eff (ngform :: FormCtrl | e) Boolean
+  :: forall e. FormController -> FormEff e Boolean
 
 foreign import valid
   " function valid($ctrl){ \
@@ -93,7 +96,7 @@ foreign import valid
   \     return $ctrl.$valid; \
   \   }; \
   \ } "
-  :: forall e. FormController -> Eff (ngform :: FormCtrl | e) Boolean
+  :: forall e. FormController -> FormEff e Boolean
 
 foreign import invalid
   " function invalid($ctrl){ \
@@ -101,7 +104,7 @@ foreign import invalid
   \     return $ctrl.$invalid; \
   \   }; \
   \ } "
-  :: forall e. FormController -> Eff (ngform :: FormCtrl | e) Boolean
+  :: forall e. FormController -> FormEff e Boolean
 
 foreign import error
   " function error($ctrl){ \
@@ -109,4 +112,4 @@ foreign import error
   \     return $ctrl.$error; \
   \   }; \
   \ } "
-  :: forall e a. FormController -> Eff (ngform :: FormCtrl | e) { | a }
+  :: forall e a. FormController -> FormEff e { | a }

@@ -1,6 +1,7 @@
 module Angular.Element
   ( Element()
-  , El()
+  , ElEff()
+  , NgEl()
   , Handler()
   , DeregisterHandler()
   , element
@@ -67,11 +68,13 @@ import DOM.Node (Node())
 import Angular.Injector (Injector())
 import Angular.Scope (Scope())
 
+type ElEff e r = Eff (ngel :: NgEl | e) r
+
 type Handler e = Event -> Eff e Unit
 
 foreign import data Element :: *
 
-foreign import data El :: !
+foreign import data NgEl :: !
 
 foreign import data DeregisterHandler :: # ! -> *
 
@@ -81,7 +84,7 @@ foreign import element
   \     return angular.element(el); \
   \   }; \
   \ }"
-  :: forall e. String -> Eff e Element
+  :: forall e. String -> ElEff e Element
 
 foreign import addClass
   " function addClass(cssClasses){ \
@@ -91,7 +94,7 @@ foreign import addClass
   \     }; \
   \   }; \
   \ }"
-  :: forall e. String -> Element -> Eff (ngel :: El | e) Element
+  :: forall e. String -> Element -> ElEff e Element
 
 foreign import after
   " function after(newEl){ \
@@ -101,18 +104,23 @@ foreign import after
   \     }; \
   \   }; \
   \ }"
-  :: forall e. Element -> Element -> Eff (ngel :: El | e) Element
+  :: forall e. Element -> Element -> ElEff e Element
 
-foreign import getAttr
-  " function getAttr(name){ \
-  \   return function(el){ \
-  \     return function(){ \
-  \       var a = el.attr(name); \
-  \       return angular.isString(a) ? Data_Maybe.Just(a) : Data_Maybe.Nothing; \
-  \     }; \
+foreign import getAttrFn
+  " function getAttrFn(nothing, just, name, el){ \
+  \   return function(){ \
+  \     var a = el.attr(name); \
+  \     return angular.isString(a) ? just(a) : nothing; \
   \   }; \
   \ }"
-  :: forall e. String -> Element -> Eff (ngel :: El | e) (Maybe String)
+  :: forall e. Fn4 (Maybe String)
+                   (String -> Maybe String)
+                   String
+                   Element
+                   (ElEff e (Maybe String))
+
+getAttr :: forall e. String -> Element -> ElEff e (Maybe String)
+getAttr = runFn4 getAttrFn Nothing Just
 
 foreign import setAttr
   " function setAttr(name){ \
@@ -124,7 +132,7 @@ foreign import setAttr
   \     }; \
   \   }; \
   \ }"
-  :: forall e. String -> String -> Element -> Eff (ngel :: El | e) Element
+  :: forall e. String -> String -> Element -> ElEff e Element
 
 foreign import setAllAttr
   " function setAllAttr(obj){ \
@@ -134,9 +142,9 @@ foreign import setAllAttr
   \     }; \
   \   }; \
   \ }"
-  :: forall e a. { | a } -> Element -> Eff (ngel :: El | e) Element
+  :: forall e a. { | a } -> Element -> ElEff e Element
 
-bind :: forall e f. String -> Handler f -> Element -> Eff (ngel :: El | e) (DeregisterHandler f)
+bind :: forall e f. String -> Handler f -> Element -> ElEff e (DeregisterHandler f)
 bind = on
 
 foreign import children
@@ -145,7 +153,7 @@ foreign import children
   \     return el.children(); \
   \   }; \
   \ }"
-  :: forall e. Element -> Eff (ngel :: El | e) Element
+  :: forall e. Element -> ElEff e Element
 
 foreign import clone
   " function clone(el){ \
@@ -153,7 +161,7 @@ foreign import clone
   \     return el.clone(); \
   \   }; \
   \ }"
-  :: forall e. Element -> Eff (ngel :: El | e) Element
+  :: forall e. Element -> ElEff e Element
 
 foreign import contents
   " function contents(el){ \
@@ -161,18 +169,23 @@ foreign import contents
   \     return el.contents(); \
   \   }; \
   \ }"
-  :: forall e. Element -> Eff (ngel :: El | e) Element
+  :: forall e. Element -> ElEff e Element
 
-foreign import getCss
-  " function getCss(name){ \
-  \   return function(el){ \
-  \     return function(){ \
-  \       var a = el.css(name); \
-  \       return angular.isString(a) ? Data_Maybe.Just(a) : Data_Maybe.Nothing; \
-  \     }; \
+foreign import getCssFn
+  " function getCssFn(nothing, just, name, el){ \
+  \   return function(){ \
+  \     var a = el.css(name); \
+  \     return angular.isString(a) ? just(a) : nothing; \
   \   }; \
   \ }"
-  :: forall e. String -> Element -> Eff (ngel :: El | e) (Maybe String)
+  :: forall e. Fn4 (Maybe String)
+                   (String -> Maybe String)
+                   String
+                   Element
+                   (ElEff e (Maybe String))
+
+getCss :: forall e. String -> Element -> ElEff e (Maybe String)
+getCss = runFn4 getCssFn Nothing Just
 
 foreign import setCss
   " function setCss(name){ \
@@ -184,7 +197,7 @@ foreign import setCss
   \     }; \
   \   }; \
   \ }"
-  :: forall e. String -> String -> Element -> Eff (ngel :: El | e) Element
+  :: forall e. String -> String -> Element -> ElEff e Element
 
 foreign import setAllCss
   " function setAllCss(obj){ \
@@ -194,18 +207,23 @@ foreign import setAllCss
   \     }; \
   \   }; \
   \ }"
-  :: forall e a. { | a } -> Element -> Eff (ngel :: El | e) Element
+  :: forall e a. { | a } -> Element -> ElEff e Element
 
-foreign import getData
-  " function getData(name){ \
-  \   return function(el){ \
-  \     return function(){ \
-  \       var a = el.data(name); \
-  \       return angular.isDefined(a) ? Data_Maybe.Just(a) : Data_Maybe.Nothing; \
-  \     }; \
+foreign import getDataFn
+  " function getDataFn(nothing, just, name, el){ \
+  \   return function(){ \
+  \     var a = el.data(name); \
+  \     return angular.isDefined(a) ? just(a) : nothing; \
   \   }; \
   \ }"
-  :: forall e a. String -> Element -> Eff (ngel :: El | e) (Maybe a)
+  :: forall e a. Fn4 (Maybe a)
+                     (a -> Maybe a)
+                     String
+                     Element
+                     (ElEff e (Maybe a))
+
+getData :: forall e a. String -> Element -> ElEff e (Maybe a)
+getData = runFn4 getDataFn Nothing Just
 
 foreign import setData
   " function setData(name){ \
@@ -217,7 +235,7 @@ foreign import setData
   \     }; \
   \   }; \
   \ }"
-  :: forall e a. String -> a -> Element -> Eff (ngel :: El | e) Element
+  :: forall e a. String -> a -> Element -> ElEff e Element
 
 foreign import getAllData
   " function getAllData(el){ \
@@ -225,7 +243,7 @@ foreign import getAllData
   \     return el.data(); \
   \   }; \
   \ }"
-  :: forall e a. Element -> Eff (ngel :: El | e) { | a }
+  :: forall e a. Element -> ElEff e { | a }
 
 foreign import setAllData
   " function setAllData(obj){ \
@@ -235,7 +253,7 @@ foreign import setAllData
   \     }; \
   \   }; \
   \ }"
-  :: forall e a. { | a } -> Element -> Eff (ngel :: El | e) Element
+  :: forall e a. { | a } -> Element -> ElEff e Element
 
 foreign import empty
   " function empty(el){ \
@@ -243,7 +261,7 @@ foreign import empty
   \     return el.empty(); \
   \   }; \
   \ }"
-  :: forall e. Element -> Eff (ngel :: El | e) Element
+  :: forall e. Element -> ElEff e Element
 
 foreign import eq
   " function eq(i){ \
@@ -253,7 +271,7 @@ foreign import eq
   \     }; \
   \   }; \
   \ }"
-  :: forall e. Number -> Element -> Eff (ngel :: El | e) Element
+  :: forall e. Number -> Element -> ElEff e Element
 
 foreign import find
   " function find(selector){ \
@@ -263,7 +281,7 @@ foreign import find
   \     }; \
   \   }; \
   \ }"
-  :: forall e. Number -> Element -> Eff (ngel :: El | e) Element
+  :: forall e. Number -> Element -> ElEff e Element
 
 foreign import hasClass
   " function hasClass(selector){ \
@@ -273,7 +291,7 @@ foreign import hasClass
   \     }; \
   \   }; \
   \ }"
-  :: forall e. String -> Element -> Eff (ngel :: El | e) Boolean
+  :: forall e. String -> Element -> ElEff e Boolean
 
 foreign import html
   " function html(el){ \
@@ -281,7 +299,7 @@ foreign import html
   \     return el.html(); \
   \   }; \
   \ }"
-  :: forall e. Element -> Eff (ngel :: El | e) String
+  :: forall e. Element -> ElEff e String
 
 foreign import next
   " function next(el){ \
@@ -289,7 +307,7 @@ foreign import next
   \     return el.next(); \
   \   }; \
   \ }"
-  :: forall e. Element -> Eff (ngel :: El | e) Element
+  :: forall e. Element -> ElEff e Element
 
 foreign import on
   " function on(events){ \
@@ -303,7 +321,7 @@ foreign import on
   \     }; \
   \   }; \
   \ }"
-  :: forall e f. String -> Handler f -> Element -> Eff (ngel :: El | e) (DeregisterHandler f)
+  :: forall e f. String -> Handler f -> Element -> ElEff e (DeregisterHandler f)
 
 foreign import off
   " function off(events){ \
@@ -313,7 +331,7 @@ foreign import off
   \     }; \
   \   }; \
   \ }"
-  :: forall e f. String -> Element -> Eff (ngel :: El | e) Element
+  :: forall e f. String -> Element -> ElEff e Element
 
 foreign import offHandler
   " function offHandler(events){ \
@@ -325,7 +343,7 @@ foreign import offHandler
   \     }; \
   \   }; \
   \ }"
-  :: forall e f. String -> DeregisterHandler f -> Element -> Eff (ngel :: El | e) Element
+  :: forall e f. String -> DeregisterHandler f -> Element -> ElEff e Element
 
 foreign import one
   " function one(events){ \
@@ -339,7 +357,7 @@ foreign import one
   \     }; \
   \   }; \
   \ }"
-  :: forall e f. String -> Handler f -> Element -> Eff (ngel :: El | e) (DeregisterHandler f)
+  :: forall e f. String -> Handler f -> Element -> ElEff e (DeregisterHandler f)
 
 foreign import parent
   " function parent(el){ \
@@ -347,7 +365,7 @@ foreign import parent
   \     return el.parent(); \
   \   }; \
   \ }"
-  :: forall e. Element -> Eff (ngel :: El | e) Element
+  :: forall e. Element -> ElEff e Element
 
 foreign import prepend
   " function prepend(newEl){ \
@@ -357,18 +375,23 @@ foreign import prepend
   \     }; \
   \   }; \
   \ }"
-  :: forall e. Element -> Element -> Eff (ngel :: El | e) Element
+  :: forall e. Element -> Element -> ElEff e Element
 
-foreign import getProp
-  " function getProp(name){ \
-  \   return function(el){ \
-  \     return function(){ \
-  \       var a = el.prop(name); \
-  \       return angular.isString(a) ? Data_Maybe.Just(a) : Data_Maybe.Nothing; \
-  \     }; \
+foreign import getPropFn
+  " function getPropFn(nothing, just, name, el){ \
+  \   return function(){ \
+  \     var a = el.prop(name); \
+  \     return angular.isString(a) ? just(a) : nothing; \
   \   }; \
   \ }"
-  :: forall e. String -> Element -> Eff (ngel :: El | e) (Maybe String)
+  :: forall e. Fn4 (Maybe String)
+                   (String -> Maybe String)
+                   String
+                   Element
+                   (ElEff e (Maybe String))
+
+getProp :: forall e. String -> Element -> ElEff e (Maybe String)
+getProp = runFn4 getPropFn Nothing Just
 
 foreign import setProp
   " function setProp(name){ \
@@ -380,7 +403,7 @@ foreign import setProp
   \     }; \
   \   }; \
   \ }"
-  :: forall e. String -> String -> Element -> Eff (ngel :: El | e) Element
+  :: forall e. String -> String -> Element -> ElEff e Element
 
 foreign import setAllProp
   " function setAllProp(obj){ \
@@ -390,7 +413,7 @@ foreign import setAllProp
   \     }; \
   \   }; \
   \ }"
-  :: forall e a. { | a } -> Element -> Eff (ngel :: El | e) Element
+  :: forall e a. { | a } -> Element -> ElEff e Element
 
 foreign import ready
   " function ready(k){ \
@@ -400,7 +423,7 @@ foreign import ready
   \     }; \
   \   }; \
   \ }"
-  :: forall e. Eff e Unit -> Element -> Eff (ngel :: El | e) Element
+  :: forall e. Eff e Unit -> Element -> ElEff e Element
 
 foreign import remove
   " function remove(el){ \
@@ -408,7 +431,7 @@ foreign import remove
   \     return el.remove(); \
   \   }; \
   \ }"
-  :: forall e. Element -> Eff (ngel :: El | e) Element
+  :: forall e. Element -> ElEff e Element
 
 foreign import removeAttr
   " function removeAttr(name){ \
@@ -418,7 +441,7 @@ foreign import removeAttr
   \     }; \
   \   }; \
   \ }"
-  :: forall e. String -> Element -> Eff (ngel :: El | e) Element
+  :: forall e. String -> Element -> ElEff e Element
 
 foreign import removeClass
   " function removeClass(name){ \
@@ -428,7 +451,7 @@ foreign import removeClass
   \     }; \
   \   }; \
   \ }"
-  :: forall e. String -> Element -> Eff (ngel :: El | e) Element
+  :: forall e. String -> Element -> ElEff e Element
 
 foreign import removeData
   " function removeData(name){ \
@@ -438,7 +461,7 @@ foreign import removeData
   \     }; \
   \   }; \
   \ }"
-  :: forall e. String -> Element -> Eff (ngel :: El | e) Element
+  :: forall e. String -> Element -> ElEff e Element
 
 foreign import replaceWith
   " function replaceWith(newEl){ \
@@ -448,7 +471,7 @@ foreign import replaceWith
   \     }; \
   \   }; \
   \ }"
-  :: forall e. Element -> Element -> Eff (ngel :: El | e) Element
+  :: forall e. Element -> Element -> ElEff e Element
 
 foreign import text
   " function text(el){ \
@@ -456,7 +479,7 @@ foreign import text
   \     return el.text(); \
   \   }; \
   \ }"
-  :: forall e. Element -> Eff (ngel :: El | e) String
+  :: forall e. Element -> ElEff e String
 
 foreign import toggleClass
   " function toggleClass(selector){ \
@@ -468,7 +491,7 @@ foreign import toggleClass
   \     }; \
   \   }; \
   \ }"
-  :: forall e. String -> Boolean -> Element -> Eff (ngel :: El | e) Element
+  :: forall e. String -> Boolean -> Element -> ElEff e Element
 
 foreign import triggerHandler
   " function triggerHandler(eventName){ \
@@ -480,22 +503,28 @@ foreign import triggerHandler
   \     }; \
   \   }; \
   \ }"
-  :: forall e a. String -> [a] -> Element -> Eff (ngel :: El | e) Element
+  :: forall e a. String -> [a] -> Element -> ElEff e Element
 
-unbind :: forall e f. String -> Element -> Eff (ngel :: El | e) Element
+unbind :: forall e f. String -> Element -> ElEff e Element
 unbind = off
 
-unbindHandler :: forall e f. String -> DeregisterHandler f -> Element -> Eff (ngel :: El | e) Element
+unbindHandler :: forall e f. String -> DeregisterHandler f -> Element -> ElEff e Element
 unbindHandler = offHandler
 
-foreign import getVal
-  " function getVal(el){ \
+foreign import getValFn
+  " function getValFn(nothing, just, el){ \
   \   return function(){ \
   \     var a = el.val(); \
-  \     return angular.isString(a) ? Data_Maybe.Just(a) : Data_Maybe.Nothing; \
+  \     return angular.isString(a) ? just(a) : nothing; \
   \   }; \
   \ }"
-  :: forall e. Element -> Eff (ngel :: El | e) (Maybe String)
+  :: forall e. Fn3 (Maybe String)
+                   (String -> Maybe String)
+                   Element
+                   (ElEff e (Maybe String))
+
+getVal :: forall e. Element -> ElEff e (Maybe String)
+getVal = runFn3 getValFn Nothing Just
 
 foreign import setVal
   " function setVal(value){ \
@@ -505,7 +534,7 @@ foreign import setVal
   \     }; \
   \   }; \
   \ }"
-  :: forall e. String -> Element -> Eff (ngel :: El | e) Element
+  :: forall e. String -> Element -> ElEff e Element
 
 foreign import wrap
   " function wrap(newEl){ \
@@ -515,7 +544,7 @@ foreign import wrap
   \     }; \
   \   }; \
   \ }"
-  :: forall e. Element -> Element -> Eff (ngel :: El | e) Element
+  :: forall e. Element -> Element -> ElEff e Element
 
 foreign import controllerFn
   " function controllerFn(fromMaybe, nothing, just, name, el){ \
@@ -529,9 +558,9 @@ foreign import controllerFn
                      (a -> Maybe a)
                      (Maybe String)
                      Element
-                     (Eff (ngel :: El | e) (Maybe a))
+                     (ElEff e (Maybe a))
 
-controller :: forall e a. Maybe String -> Element -> Eff (ngel :: El | e) (Maybe a)
+controller :: forall e a. Maybe String -> Element -> ElEff e (Maybe a)
 controller = runFn5 controllerFn fromMaybe Nothing Just
 
 foreign import injectorFn
@@ -541,9 +570,9 @@ foreign import injectorFn
   \     return angular.isDefined(a) ? just(a) : nothing; \
   \   }; \
   \ }"
-  :: forall e a. Fn3 (Maybe Injector) (Injector -> Maybe Injector) Element (Eff (ngel :: El | e) (Maybe Injector))
+  :: forall e a. Fn3 (Maybe Injector) (Injector -> Maybe Injector) Element (ElEff e (Maybe Injector))
 
-injector :: forall e a. Element -> Eff (ngel :: El | e) (Maybe Injector)
+injector :: forall e a. Element -> ElEff e (Maybe Injector)
 injector = runFn3 injectorFn Nothing Just
 
 foreign import scopeFn
@@ -553,9 +582,9 @@ foreign import scopeFn
   \     return angular.isDefined(a) ? just(a) : nothing; \
   \   }; \
   \ }"
-  :: forall e a. Fn3 (Maybe (Scope a)) (Scope a -> Maybe (Scope a)) Element (Eff (ngel :: El | e) (Maybe (Scope a)))
+  :: forall e a. Fn3 (Maybe (Scope a)) (Scope a -> Maybe (Scope a)) Element (ElEff e (Maybe (Scope a)))
 
-scope :: forall e a. Element -> Eff (ngel :: El | e) (Maybe (Scope a))
+scope :: forall e a. Element -> ElEff e (Maybe (Scope a))
 scope = runFn3 scopeFn Nothing Just
 
 foreign import isolateScopeFn
@@ -565,9 +594,9 @@ foreign import isolateScopeFn
   \     return angular.isDefined(a) ? just(a) : nothing; \
   \   }; \
   \ }"
-  :: forall e a. Fn3 (Maybe (Scope a)) (Scope a -> Maybe (Scope a)) Element (Eff (ngel :: El | e) (Maybe (Scope a)))
+  :: forall e a. Fn3 (Maybe (Scope a)) (Scope a -> Maybe (Scope a)) Element (ElEff e (Maybe (Scope a)))
 
-isolateScope :: forall e a. Element -> Eff (ngel :: El | e) (Maybe (Scope a))
+isolateScope :: forall e a. Element -> ElEff e (Maybe (Scope a))
 isolateScope = runFn3 isolateScopeFn Nothing Just
 
 foreign import inheritedData
@@ -576,7 +605,7 @@ foreign import inheritedData
   \     return el.inheritedData(); \
   \   }; \
   \ }"
-  :: forall e a. Element -> Eff (ngel :: El | e) { | a }
+  :: forall e a. Element -> ElEff e { | a }
 
 foreign import bangbangFn
   " function bangbangFn(nothing, just, el, i) { \

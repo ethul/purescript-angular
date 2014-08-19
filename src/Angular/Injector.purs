@@ -1,7 +1,7 @@
 module Angular.Injector
   ( Injector()
-  , Inj()
   , InjEff()
+  , NgInj()
   , get
   , invoke
   , has
@@ -16,9 +16,9 @@ import Data.Maybe
 
 foreign import data Injector :: *
 
-foreign import data Inj :: !
+foreign import data NgInj :: !
 
-type InjEff e a = Eff (nginj :: Inj | e) a
+type InjEff e a = Eff (nginj :: NgInj | e) a
 
 get :: forall e a. String -> Injector -> InjEff e a
 get = runFn2 getFn

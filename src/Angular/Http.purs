@@ -1,6 +1,5 @@
 module Angular.Http
  ( Http()
- , HttpEff()
  , HttpResponse()
  , Response()
  , Config()
@@ -20,7 +19,6 @@ module Angular.Http
  , put'
  ) where
 
-import Control.Monad.Eff
 import Data.Either
 import Data.Function
 import Data.Maybe
@@ -32,8 +30,6 @@ import Angular.Http.Types
 import Angular.Q
 
 foreign import data Http :: *
-
-type HttpEff e r = Eff (nghttp :: HTTP | e) r
 
 type HttpResponse e r a b c = HttpEff e (Promise (Response r a b c))
 
@@ -129,7 +125,7 @@ runHttpFn'' m u d c h = do
   res <- runFn5 httpFn'' (show m) u (writeRequestData d) conf h
   return $ foreignResponse <$> res
 
-foreignConfig :: forall e a b c. Config a b c -> I.ConfEff e I.ForeignConfig
+foreignConfig :: forall e a b c. Config a b c -> HttpEff e I.ForeignConfig
 foreignConfig conf = do
   c <- I.foreignConfig
   I.setConfigMethod conf.method c
