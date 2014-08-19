@@ -1,5 +1,6 @@
 module Angular.Http
  ( Http()
+ , HttpEff()
  , HttpResponse()
  , Response()
  , Config()

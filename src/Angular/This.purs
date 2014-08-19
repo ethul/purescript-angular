@@ -3,6 +3,8 @@ module Angular.This
   , Read()
   , Write()
   , ReadWrite()
+  , ReadThis()
+  , WriteThis()
   , readThis
   , writeThis
   , extendThis

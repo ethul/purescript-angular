@@ -7,7 +7,7 @@ module Angular.Scope
   , ReadWrite()
   , WatchListener()
   , Event()
-  , ApplyExpr()
+  , ApplyExpr(..)
   , WatchDeregistration()
   , OnDeregistration()
   , readScope
@@ -53,9 +53,9 @@ type Event e a b
     }
 
 data ApplyExpr e r a
-  = FnApplyExpr (Scope a -> Eff e r)
+  = DefaultApplyExpr
   | StringApplyExpr String
-  | DefaultApplyExpr
+  | FnApplyExpr (Scope a -> Eff e r)
 
 foreign import data Scope :: # * -> *
 
@@ -73,12 +73,6 @@ type Write e = Eff (ngwscope :: WriteScope | e) Unit
 
 type ReadWrite e r = Eff (ngrscope :: ReadScope, ngwscope :: WriteScope | e) r
 
-writeScope :: forall e a b. String -> b -> Scope a -> Write e
-writeScope = runFn3 writeScopeFn
-
-extendScope :: forall e a b. { | b } -> Scope a -> Write e
-extendScope = runFn2 extendScopeFn
-
 modifyScope :: forall e f a b. ({ | a} -> Eff f { | b }) -> Scope a -> ReadWrite e Unit
 modifyScope k s = do
   s' <- readScope s
@@ -86,38 +80,48 @@ modifyScope k s = do
   extendScope w s
 
 foreign import readScope
-  "function readScope(scope){\
+  "function readScope($scope){\
   \  return function(){\
-  \    return scope;\
+  \    return $scope;\
   \  };\
   \}" :: forall e a. Scope a -> Read e a
 
+writeScope :: forall e a b. String -> b -> Scope a -> Write e
+writeScope = runFn3 writeScopeFn
+
 foreign import writeScopeFn
-  "function writeScopeFn(prop, value, scope){\
+  "function writeScopeFn(prop, value, $scope){\
   \  return function(){\
-  \    scope[prop] = value;\
+  \    $scope[prop] = value;\
   \  };\
   \}" :: forall e a b. Fn3 String b (Scope a) (Write e)
 
+extendScope :: forall e a b. { | b } -> Scope a -> Write e
+extendScope = runFn2 extendScopeFn
+
 foreign import extendScopeFn
-  "function extendScopeFn(obj, scope){\
+  "function extendScopeFn(obj, $scope){\
   \  return function(){\
-  \    angular.extend(scope, obj);\
+  \    angular.extend($scope, obj);\
   \  };\
   \}" :: forall e a b. Fn2 { | b } (Scope a) (Write e)
 
-foreign import newScope
-  " function newScope(isolate){ \
-  \   return function(scope){ \
-  \     return scope.$new(isolate); \
-  \   }; \
+newScope :: forall a b. Boolean -> Scope a -> Scope b
+newScope = runFn2 newScopeFn
+
+foreign import newScopeFn
+  " function newScopeFn(isolate, $scope){ \
+  \   return $scope.$new(isolate); \
   \ }"
-  :: forall a b. Boolean -> Scope a -> Scope b
+  :: forall a b. Fn2 Boolean (Scope a) (Scope b)
+
+watch :: forall e a b. String -> Maybe (WatchListener e a b) -> Boolean -> Scope b -> Eff e WatchDeregistration
+watch = runFn5 watchFn maybe
 
 foreign import watchFn
-  " function watchFn(maybe, exp, listener, objEq, scope){ \
-  \   return maybe(function(){return scope.$watch(exp, undefined, objEq);}) \
-  \               (function(k){return function(){return scope.$watch(exp, function(a1,a2,scope){k(a1)(a2)(scope)()}, objEq);}}) \
+  " function watchFn(maybe, exp, listener, objEq, $scope){ \
+  \   return maybe(function(){return $scope.$watch(exp, undefined, objEq);}) \
+  \               (function(k){return function(){return $scope.$watch(exp, function(a1,a2,$scope){k(a1)(a2)($scope)()}, objEq);}}) \
   \               (listener); \
   \ }"
   :: forall e a b. Fn5 (Eff e WatchDeregistration
@@ -130,48 +134,43 @@ foreign import watchFn
                        (Scope b)
                        (Eff e WatchDeregistration)
 
-watch :: forall e a b. String -> Maybe (WatchListener e a b) -> Boolean -> Scope b -> Eff e WatchDeregistration
-watch = runFn5 watchFn maybe
+watchCollection :: forall e a b. String -> WatchListener e a b -> Scope b -> Eff e WatchDeregistration
+watchCollection = runFn3 watchCollectionFn
 
-foreign import watchCollection
-  " function watchCollection(exp){ \
-  \   return function(listener){ \
-  \     return function(scope){ \
-  \       return function(){ \
-  \         return scope.$watchCollection(exp, function(a1,a2,scope){ \
-  \           return listener(a1)(a2)(scope)(); \
-  \         }); \
-  \       }; \
-  \     }; \
+foreign import watchCollectionFn
+  " function watchCollectionFn(exp, listener, $scope){ \
+  \   return function(){ \
+  \     return $scope.$watchCollection(exp, function(a1,a2,$scope){ \
+  \       return listener(a1)(a2)($scope)(); \
+  \     }); \
   \   }; \
   \ }"
-  :: forall e a b
-  .  String
-  -> WatchListener e a b
-  -> Scope b
-  -> Eff e WatchDeregistration
+  :: forall e a b. Fn3 String (WatchListener e a b) (Scope b) (Eff e WatchDeregistration)
 
 foreign import digest
-  " function digest(scope){ \
+  " function digest($scope){ \
   \   return function(){ \
-  \     return scope.$digest(); \
+  \     return $scope.$digest(); \
   \   }; \
   \ }"
   :: forall e a. Scope a -> Eff e Unit
 
 foreign import destroy
-  " function destroy(scope){ \
+  " function destroy($scope){ \
   \   return function(){ \
-  \     return scope.$destroy(); \
+  \     return $scope.$destroy(); \
   \   }; \
   \ }"
   :: forall e a. Scope a -> Eff e Unit
 
+evalSync :: forall e r a b. Maybe (Scope a -> Eff e r) -> Maybe { | b } -> Scope a -> Eff e r
+evalSync = runFn4 evalSyncFn maybe
+
 foreign import evalSyncFn
-  " function evalSyncFn(maybe, expr, locals, scope){ \
-  \   return maybe(function(){return scope.$eval(undefined, maybe(undefined)(angular.identity)(locals));}) \
-  \               (function(k){return function(){return scope.$eval(function(scope){return k(scope)();}, \
-  \                                                                 maybe(undefined)(angular.identity)(locals));}}) \
+  " function evalSyncFn(maybe, expr, locals, $scope){ \
+  \   return maybe(function(){return $scope.$eval(undefined, maybe(undefined)(angular.identity)(locals));}) \
+  \               (function(k){return function(){return $scope.$eval(function($scope){return k($scope)();}, \
+  \                                                                  maybe(undefined)(angular.identity)(locals));}}) \
   \               (expr); \
   \ } "
   :: forall e r s t a b c. Fn4 (t -> (s -> t) -> Maybe s -> t)
@@ -180,8 +179,8 @@ foreign import evalSyncFn
                                (Scope a)
                                (Eff e r)
 
-evalSync :: forall e r a b. Maybe (Scope a -> Eff e r) -> Maybe { | b } -> Scope a -> Eff e r
-evalSync = runFn4 evalSyncFn maybe
+evalAsync :: forall e r a. Maybe (Scope a -> Eff e r) -> Scope a -> Eff e r
+evalAsync = runFn3 evalAsyncFn maybe
 
 foreign import evalAsyncFn
   " function evalAsyncFn(maybe, expr, scope){ \
@@ -194,86 +193,78 @@ foreign import evalAsyncFn
                              (Scope a)
                              (Eff e r)
 
-evalAsync :: forall e r a. Maybe (Scope a -> Eff e r) -> Scope a -> Eff e r
-evalAsync = runFn3 evalAsyncFn maybe
-
-applyExpr :: forall e r a. (Scope a -> Eff e r) -> ApplyExpr e r a
-applyExpr = FnApplyExpr
+defaultApplyExpr :: forall e r a. ApplyExpr e r a
+defaultApplyExpr = DefaultApplyExpr
 
 stringApplyExpr :: forall e r a. String -> ApplyExpr e r a
 stringApplyExpr = StringApplyExpr
 
-defaultApplyExpr :: forall e r a. ApplyExpr e r a
-defaultApplyExpr = DefaultApplyExpr
+applyExpr :: forall e r a. (Scope a -> Eff e r) -> ApplyExpr e r a
+applyExpr = FnApplyExpr
 
-foreign import apply
-  " function __apply_expr__(k){ \
-  \   if (k.ctor === FnApplyExpr().ctor) return function(scope){return k.values[0](scope)();}; \
-  \   else if (k.ctor === StringApplyExpr().ctor) return k.values[0]; \
-  \   else if (k.ctor === DefaultApplyExpr.ctor) return undefined; \
-  \   else throw 'Failed pattern match'; \
-  \ } \
-  \ function apply(expr){ \
-  \   return function(scope){ \
-  \     return function(){ \
-  \       return scope.$apply(__apply_expr__(expr)); \
-  \     }; \
+cataApply :: forall e r a b
+          .  b
+          -> (String -> b)
+          -> ((Scope a -> Eff e r) -> b)
+          -> ApplyExpr e r a
+          -> b
+cataApply f g h a =
+  case a of
+       DefaultApplyExpr -> f
+       StringApplyExpr a -> g a
+       FnApplyExpr a -> h a
+
+apply :: forall e r a. ApplyExpr e r a -> Scope a -> Eff e r
+apply = runFn2 applyFn
+
+foreign import applyFn
+  " function applyFn(expr, $scope){ \
+  \   return function(){ \
+  \     return $scope.$apply(cataApply(undefined) \
+  \                                   (angular.identity) \
+  \                                   (function(a){return a(scope)();}) \
+  \                                   (expr)); \
   \   }; \
   \ }"
-  :: forall e r a
-  .  ApplyExpr e r a
-  -> Scope a
-  -> Eff e r
+  :: forall e r a. Fn2 (ApplyExpr e r a) (Scope a) (Eff e r)
 
-foreign import on
-  " function on(name){ \
-  \   return function(listener){ \
-  \     return function(scope){ \
-  \       return function(){ \
-  \         return scope.$on(name, function(event, arg){ \
-  \           return listener(event)(arg)(); \
-  \         }); \
-  \       }; \
-  \     }; \
+on :: forall e a b c. String -> (Event e a b -> c -> Eff e Unit) -> Scope b -> Eff e OnDeregistration
+on = runFn3 onFn
+
+foreign import onFn
+  " function onFn(name, listener, $scope){ \
+  \   return function(){ \
+  \     return $scope.$on(name, function(event, arg){ \
+  \       return listener(event)(arg)(); \
+  \     }); \
   \   }; \
   \ }"
-  :: forall e a b c
-  .  String
-  -> (Event e a b -> c -> Eff e Unit)
-  -> Scope b
-  -> Eff e OnDeregistration
+  :: forall e a b c. Fn3 String
+                         (Event e a b -> c -> Eff e Unit)
+                         (Scope b)
+                         (Eff e OnDeregistration)
 
-foreign import emit
-  "function emit(name){\
-  \  return function(arg){\
-  \    return function(scope){\
-  \      return function(){\
-  \        return scope.$emit(name, arg);\
-  \      };\
-  \    };\
-  \  };\
-  \}"
-  :: forall e a b c
-  .  String
-  -> a
-  -> Scope b
-  -> Eff e (Event e b c)
+emit :: forall e a b c. String -> a -> Scope b -> Eff e (Event e b c)
+emit = runFn3 emitFn
 
-foreign import broadcast
-  "function broadcast(name){\
-  \  return function(arg){\
-  \    return function(scope){\
-  \      return function(){\
-  \        return scope.$broadcast(name, arg);\
-  \      };\
-  \    };\
-  \  };\
-  \}"
-  :: forall e a b c
-  .  String
-  -> a
-  -> Scope b
-  -> Eff e (Event e b c)
+foreign import emitFn
+  " function emitFn(name, arg, $scope){ \
+  \   return function(){ \
+  \     return $scope.$emit(name, arg); \
+  \   }; \
+  \ } "
+  :: forall e a b c. Fn3 String a (Scope b) (Eff e (Event e b c))
+
+broadcast :: forall e a b c. String -> a -> Scope b -> Eff e (Event e b c)
+broadcast = runFn3 broadcastFn
+
+foreign import broadcastFn
+  " function broadcastFn(name, arg, $scope){ \
+  \   return function(){ \
+  \     return $scope.$broadcast(name, arg); \
+  \   }; \
+  \ } "
+  :: forall e a b c. Fn3 String a (Scope b) (Eff e (Event e b c))
 
 foreign import deregisterWatch "function deregisterWatch(dereg){return dereg();}" :: WatchDeregistration -> Unit
 

@@ -28,6 +28,7 @@ module Angular.NgModelController
  ) where
 
 import Control.Monad.Eff
+import Data.Function
 import Data.Maybe
 
 foreign import data NgModelController :: * -> *
@@ -129,39 +130,47 @@ foreign import setModelValue
   \ } "
   :: forall e a b. b -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) (NgModelController b)
 
-foreign import appendParsers
-  " function appendParsers(parsers){ \
-  \   return function($ctrl){ \
-  \     return function(){ \
-  \       var as = []; \
-  \       angular.forEach(parsers, function(p){ \
-  \         as.push(function(v){ \
-  \           return p(v).values[0]; \
-  \         }); \
+foreign import appendParsersFn
+  " function appendParsersFn(fromMaybe, parsers, $ctrl){ \
+  \   return function(){ \
+  \     var as = []; \
+  \     angular.forEach(parsers, function(p){ \
+  \       as.push(function(v){ \
+  \         return fromMaybe(undefined)(p(v)); \
   \       }); \
-  \       $ctrl.$parsers.push.apply($ctrl.$parsers, as); \
-  \       return {}; \
-  \     }; \
+  \     }); \
+  \     $ctrl.$parsers.push.apply($ctrl.$parsers, as); \
+  \     return {}; \
   \   }; \
   \ } "
-  :: forall e a. [Parser a] -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+  :: forall e a. Fn3 (a -> Maybe a -> a)
+                     [Parser a]
+                     (NgModelController a)
+                     (Eff (ngmodel :: NgModelCtrl | e) Unit)
 
-foreign import prependParsers
-  " function prependParsers(parsers){ \
-  \   return function($ctrl){ \
-  \     return function(){ \
-  \       var as = []; \
-  \       angular.forEach(parsers, function(p){ \
-  \         as.push(function(v){ \
-  \           return p(v).values[0]; \
-  \         }); \
+appendParsers :: forall e a. [Parser a] -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+appendParsers = runFn3 appendParsersFn fromMaybe
+
+foreign import prependParsersFn
+  " function prependParsersFn(fromMaybe, parsers, $ctrl){ \
+  \   return function(){ \
+  \     var as = []; \
+  \     angular.forEach(parsers, function(p){ \
+  \       as.push(function(v){ \
+  \         return fromMaybe(undefined)(p(v)); \
   \       }); \
-  \       $ctrl.$parsers.unshift.apply($ctrl.$parsers, as); \
-  \       return {}; \
-  \     }; \
+  \     }); \
+  \     $ctrl.$parsers.unshift.apply($ctrl.$parsers, as); \
+  \     return {}; \
   \   }; \
   \ } "
-  :: forall e a. [Parser a] -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+  :: forall e a. Fn3 (a -> Maybe a -> a)
+                     [Parser a]
+                     (NgModelController a)
+                     (Eff (ngmodel :: NgModelCtrl | e) Unit)
+
+prependParsers :: forall e a. [Parser a] -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+prependParsers = runFn3 prependParsersFn fromMaybe
 
 foreign import appendFormatters
   " function appendFormatters(formatters){ \
