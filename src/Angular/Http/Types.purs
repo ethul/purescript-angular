@@ -1,5 +1,6 @@
 module Angular.Http.Types
-  ( HTTP()
+  ( NgHttp()
+  , HttpEff()
   , Method(..)
   , Status(..)
   , ResponseType(..)
@@ -29,6 +30,7 @@ module Angular.Http.Types
   , writeRequestData
   ) where
 
+import Control.Monad.Eff
 import Data.Either
 import Data.Function
 import Data.Tuple
@@ -38,7 +40,7 @@ import Angular.Q (Promise())
 
 import qualified DOM.Types as D
 
-foreign import data HTTP :: !
+foreign import data NgHttp :: !
 
 foreign import data ForeignRequestData :: *
 
@@ -49,6 +51,8 @@ foreign import data ForeignHeaders :: *
 foreign import data ForeignCache :: *
 
 foreign import data ForeignTimeout :: *
+
+type HttpEff e r = Eff (nghttp :: NgHttp | e) r
 
 type Url = String
 

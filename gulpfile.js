@@ -100,4 +100,4 @@ gulp.task('watch.todomvc', function(cb){
   server(cb);
 });
 
-gulp.task('default', ['clean', 'make', 'docgen']);
+gulp.task('default', ['clean', 'make', 'docgen', 'psci']);

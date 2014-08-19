@@ -1,10 +1,10 @@
 module Angular.This
   ( This()
-  , Read()
-  , Write()
-  , ReadWrite()
-  , ReadThis()
-  , WriteThis()
+  , ReadEff()
+  , WriteEff()
+  , ReadWriteEff()
+  , NgReadThis()
+  , NgWriteThis()
   , readThis
   , writeThis
   , extendThis
@@ -17,23 +17,23 @@ import Data.Function
 
 foreign import data This :: # * -> *
 
-foreign import data ReadThis :: !
+foreign import data NgReadThis :: !
 
-foreign import data WriteThis :: !
+foreign import data NgWriteThis :: !
 
-type Read e a = Eff (ngrthis :: ReadThis | e) { | a }
+type ReadEff e a = Eff (ngrthis :: NgReadThis | e) { | a }
 
-type Write e = Eff (ngwthis :: WriteThis | e) Unit
+type WriteEff e = Eff (ngwthis :: NgWriteThis | e) Unit
 
-type ReadWrite e r = Eff (ngrthis :: ReadThis, ngwthis :: WriteThis | e) r
+type ReadWriteEff e r = Eff (ngrthis :: NgReadThis, ngwthis :: NgWriteThis | e) r
 
-writeThis :: forall e a b. String -> b -> This a -> Write e
+writeThis :: forall e a b. String -> b -> This a -> WriteEff e
 writeThis = runFn3 writeThisFn
 
-extendThis :: forall e a b. { | b } -> This a -> Write e
+extendThis :: forall e a b. { | b } -> This a -> WriteEff e
 extendThis = runFn2 extendThisFn
 
-modifyThis :: forall e f a b. ({ | a } -> Eff f { | b }) -> This a -> ReadWrite e Unit
+modifyThis :: forall e f a b. ({ | a } -> Eff f { | b }) -> This a -> ReadWriteEff e Unit
 modifyThis k t = do
   t' <- readThis t
   w <- unsafeInterleaveEff $ k t'
@@ -44,18 +44,18 @@ foreign import readThis
   \   return function(){ \
   \     return $this; \
   \   } \
-  \ } " :: forall e a. This a -> Read e a
+  \ } " :: forall e a. This a -> ReadEff e a
 
 foreign import extendThisFn
   "function extendThisFn(obj, $this){\
   \  return function(){\
   \    angular.extend($this, obj);\
   \  };\
-  \}" :: forall e a b. Fn2 { | b } (This a) (Write e)
+  \}" :: forall e a b. Fn2 { | b } (This a) (WriteEff e)
 
 foreign import writeThisFn
   " function writeThisFn(prop, value, $this){ \
   \   return function(){ \
   \     $this[prop] = value; \
   \   }; \
-  \ } " :: forall e a b. Fn3 String b (This a) (Write e)
+  \ } " :: forall e a b. Fn3 String b (This a) (WriteEff e)

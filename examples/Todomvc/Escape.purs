@@ -3,7 +3,7 @@ module Todomvc.Escape (EscapeDirective(), escape) where
 import Data.Maybe
 
 import Angular.Attributes (get)
-import Angular.Element (El(..), on)
+import Angular.Element (on)
 import Angular.Scope (apply, stringApplyExpr)
 
 foreign import data EscapeDirective :: *

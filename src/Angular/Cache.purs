@@ -1,7 +1,8 @@
 module Angular.Cache
  ( Cache()
  , CacheFactory()
- , CACHE()
+ , CacheEff()
+ , NgCache()
  , Key()
  , Name()
  , Options()
@@ -18,7 +19,7 @@ import Control.Monad.Eff
 import Data.Maybe
 import Data.Function
 
-foreign import data CACHE :: !
+foreign import data NgCache :: !
 
 foreign import data Cache :: *
 
@@ -30,7 +31,9 @@ type Name = String
 
 type Options a = { capacity :: Number | a }
 
-cache :: forall e a. Name -> Maybe (Options a) -> CacheFactory -> Eff (ngcache :: CACHE | e) Cache
+type CacheEff e r = Eff (ngcache :: NgCache | e) r
+
+cache :: forall e a. Name -> Maybe (Options a) -> CacheFactory -> CacheEff e Cache
 cache = runFn4 cacheFn fromMaybe
 
 foreign import cacheFn
@@ -43,7 +46,7 @@ foreign import cacheFn
                      Name
                      (Maybe (Options a))
                      CacheFactory
-                     (Eff (ngcache :: CACHE | e) Cache)
+                     (CacheEff e Cache)
 
 foreign import put
   "  function put(key){ \
@@ -55,7 +58,7 @@ foreign import put
   \      }; \
   \    }; \
   \  } "
-  :: forall e a. Key -> a -> Cache -> Eff (ngcache :: CACHE | e) a
+  :: forall e a. Key -> a -> Cache -> CacheEff e a
 
 foreign import get
   "  function get(key){ \
@@ -65,7 +68,7 @@ foreign import get
   \      }; \
   \    }; \
   \  } "
-  :: forall e a. Key -> Cache -> Eff (ngcache :: CACHE | e) a
+  :: forall e a. Key -> Cache -> CacheEff e a
 
 foreign import remove
   "  function remove(key){ \
@@ -75,7 +78,7 @@ foreign import remove
   \      }; \
   \    }; \
   \  } "
-  :: forall e a. Key -> Cache -> Eff (ngcache :: CACHE | e) Unit
+  :: forall e. Key -> Cache -> CacheEff e Unit
 
 foreign import removeAll
   "  function removeAll(cache){ \
@@ -83,7 +86,7 @@ foreign import removeAll
   \      return cache.removeAll(); \
   \    }; \
   \  } "
-  :: forall e. Cache -> Eff (ngcache :: CACHE | e) Unit
+  :: forall e. Cache -> CacheEff e Unit
 
 foreign import destroy
   "  function destroy(cache){ \
@@ -91,7 +94,7 @@ foreign import destroy
   \      return cache.destroy(); \
   \    }; \
   \  } "
-  :: forall e. Cache -> Eff (ngcache :: CACHE | e) Unit
+  :: forall e. Cache -> CacheEff e Unit
 
 foreign import info
   "  function info(cache){ \
@@ -99,4 +102,4 @@ foreign import info
   \      return cache.info(); \
   \    }; \
   \  } "
-  :: forall e a. Cache -> Eff (ngcache :: CACHE | e) { id :: String, size :: Number | a }
+  :: forall e a. Cache -> CacheEff e { id :: String, size :: Number | a }

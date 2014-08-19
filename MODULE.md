@@ -15,35 +15,37 @@
 
 ### Types
 
-    data Attr :: !
+    type AttrEff e r = Eff (ngattr :: NgAttr | e) r
 
     data Attributes :: *
+
+    data NgAttr :: !
 
 
 ### Values
 
-    addClass :: forall e. String -> Attributes -> Eff (ngattr :: Attr | e) Unit
+    addClass :: forall e. String -> Attributes -> AttrEff e Unit
 
-    attr :: forall e a. Attributes -> Eff (ngattr :: Attr | e) {  | a }
+    attr :: forall e a. Attributes -> AttrEff e {  | a }
 
-    get :: forall e a. Attributes -> Eff (ngattr :: Attr | e) {  | a }
+    get :: forall e a. Attributes -> AttrEff e {  | a }
 
-    observe :: forall e f. String -> (String -> Eff f Unit) -> Attributes -> Eff (ngattr :: Attr | e) Unit
+    observe :: forall e f. String -> (String -> Eff f Unit) -> Attributes -> AttrEff e Unit
 
-    removeClass :: forall e. String -> Attributes -> Eff (ngattr :: Attr | e) Unit
+    removeClass :: forall e. String -> Attributes -> AttrEff e Unit
 
-    set :: forall e. String -> String -> Attributes -> Eff (ngattr :: Attr | e) Unit
+    set :: forall e. String -> String -> Attributes -> AttrEff e Unit
 
-    updateClass :: forall e. String -> String -> Attributes -> Eff (ngattr :: Attr | e) Unit
+    updateClass :: forall e. String -> String -> Attributes -> AttrEff e Unit
 
 
 ## Module Angular.Cache
 
 ### Types
 
-    data CACHE :: !
-
     data Cache :: *
+
+    type CacheEff e r = Eff (ngcache :: NgCache | e) r
 
     data CacheFactory :: *
 
@@ -51,24 +53,26 @@
 
     type Name  = String
 
+    data NgCache :: !
+
     type Options a = { capacity :: Number | a }
 
 
 ### Values
 
-    cache :: forall e a. Name -> Maybe (Options a) -> CacheFactory -> Eff (ngcache :: CACHE | e) Cache
+    cache :: forall e a. Name -> Maybe (Options a) -> CacheFactory -> CacheEff e Cache
 
-    destroy :: forall e. Cache -> Eff (ngcache :: CACHE | e) Unit
+    destroy :: forall e. Cache -> CacheEff e Unit
 
-    get :: forall e a. Key -> Cache -> Eff (ngcache :: CACHE | e) a
+    get :: forall e a. Key -> Cache -> CacheEff e a
 
-    info :: forall e a. Cache -> Eff (ngcache :: CACHE | e) { size :: Number, id :: String | a }
+    info :: forall e a. Cache -> CacheEff e { size :: Number, id :: String | a }
 
-    put :: forall e a. Key -> a -> Cache -> Eff (ngcache :: CACHE | e) a
+    put :: forall e a. Key -> a -> Cache -> CacheEff e a
 
-    remove :: forall e a. Key -> Cache -> Eff (ngcache :: CACHE | e) Unit
+    remove :: forall e. Key -> Cache -> CacheEff e Unit
 
-    removeAll :: forall e. Cache -> Eff (ngcache :: CACHE | e) Unit
+    removeAll :: forall e. Cache -> CacheEff e Unit
 
 
 ## Module Angular.Element
@@ -77,114 +81,116 @@
 
     data DeregisterHandler :: # ! -> *
 
-    data El :: !
+    type ElEff e r = Eff (ngel :: NgEl | e) r
 
     data Element :: *
 
     type Handler e = Event -> Eff e Unit
+
+    data NgEl :: !
 
 
 ### Values
 
     (!!) :: Element -> Number -> Maybe Node
 
-    addClass :: forall e. String -> Element -> Eff (ngel :: El | e) Element
+    addClass :: forall e. String -> Element -> ElEff e Element
 
-    after :: forall e. Element -> Element -> Eff (ngel :: El | e) Element
+    after :: forall e. Element -> Element -> ElEff e Element
 
-    bind :: forall e f. String -> Handler f -> Element -> Eff (ngel :: El | e) (DeregisterHandler f)
+    bind :: forall e f. String -> Handler f -> Element -> ElEff e (DeregisterHandler f)
 
-    children :: forall e. Element -> Eff (ngel :: El | e) Element
+    children :: forall e. Element -> ElEff e Element
 
-    clone :: forall e. Element -> Eff (ngel :: El | e) Element
+    clone :: forall e. Element -> ElEff e Element
 
-    contents :: forall e. Element -> Eff (ngel :: El | e) Element
+    contents :: forall e. Element -> ElEff e Element
 
-    controller :: forall e a. Maybe String -> Element -> Eff (ngel :: El | e) (Maybe a)
+    controller :: forall e a. Maybe String -> Element -> ElEff e (Maybe a)
 
-    element :: forall e. String -> Eff e Element
+    element :: forall e. String -> ElEff e Element
 
-    empty :: forall e. Element -> Eff (ngel :: El | e) Element
+    empty :: forall e. Element -> ElEff e Element
 
-    eq :: forall e. Number -> Element -> Eff (ngel :: El | e) Element
+    eq :: forall e. Number -> Element -> ElEff e Element
 
-    find :: forall e. Number -> Element -> Eff (ngel :: El | e) Element
+    find :: forall e. Number -> Element -> ElEff e Element
 
-    getAttr :: forall e. String -> Element -> Eff (ngel :: El | e) (Maybe String)
+    getAttr :: forall e. String -> Element -> ElEff e (Maybe String)
 
-    getCss :: forall e. String -> Element -> Eff (ngel :: El | e) (Maybe String)
+    getCss :: forall e. String -> Element -> ElEff e (Maybe String)
 
-    getData :: forall e a. String -> Element -> Eff (ngel :: El | e) (Maybe a)
+    getData :: forall e a. String -> Element -> ElEff e (Maybe a)
 
-    getProp :: forall e. String -> Element -> Eff (ngel :: El | e) (Maybe String)
+    getProp :: forall e. String -> Element -> ElEff e (Maybe String)
 
-    getVal :: forall e. Element -> Eff (ngel :: El | e) (Maybe String)
+    getVal :: forall e. Element -> ElEff e (Maybe String)
 
-    hasClass :: forall e. String -> Element -> Eff (ngel :: El | e) Boolean
+    hasClass :: forall e. String -> Element -> ElEff e Boolean
 
-    html :: forall e. Element -> Eff (ngel :: El | e) String
+    html :: forall e. Element -> ElEff e String
 
-    inheritedData :: forall e a. Element -> Eff (ngel :: El | e) {  | a }
+    inheritedData :: forall e a. Element -> ElEff e {  | a }
 
-    injector :: forall e a. Element -> Eff (ngel :: El | e) (Maybe Injector)
+    injector :: forall e a. Element -> ElEff e (Maybe Injector)
 
-    isolateScope :: forall e a. Element -> Eff (ngel :: El | e) (Maybe (Scope a))
+    isolateScope :: forall e a. Element -> ElEff e (Maybe (Scope a))
 
-    next :: forall e. Element -> Eff (ngel :: El | e) Element
+    next :: forall e. Element -> ElEff e Element
 
-    off :: forall e f. String -> Element -> Eff (ngel :: El | e) Element
+    off :: forall e f. String -> Element -> ElEff e Element
 
-    offHandler :: forall e f. String -> DeregisterHandler f -> Element -> Eff (ngel :: El | e) Element
+    offHandler :: forall e f. String -> DeregisterHandler f -> Element -> ElEff e Element
 
-    on :: forall e f. String -> Handler f -> Element -> Eff (ngel :: El | e) (DeregisterHandler f)
+    on :: forall e f. String -> Handler f -> Element -> ElEff e (DeregisterHandler f)
 
-    one :: forall e f. String -> Handler f -> Element -> Eff (ngel :: El | e) (DeregisterHandler f)
+    one :: forall e f. String -> Handler f -> Element -> ElEff e (DeregisterHandler f)
 
-    parent :: forall e. Element -> Eff (ngel :: El | e) Element
+    parent :: forall e. Element -> ElEff e Element
 
-    prepend :: forall e. Element -> Element -> Eff (ngel :: El | e) Element
+    prepend :: forall e. Element -> Element -> ElEff e Element
 
-    ready :: forall e. Eff e Unit -> Element -> Eff (ngel :: El | e) Element
+    ready :: forall e. Eff e Unit -> Element -> ElEff e Element
 
-    remove :: forall e. Element -> Eff (ngel :: El | e) Element
+    remove :: forall e. Element -> ElEff e Element
 
-    removeAttr :: forall e. String -> Element -> Eff (ngel :: El | e) Element
+    removeAttr :: forall e. String -> Element -> ElEff e Element
 
-    removeClass :: forall e. String -> Element -> Eff (ngel :: El | e) Element
+    removeClass :: forall e. String -> Element -> ElEff e Element
 
-    removeData :: forall e. String -> Element -> Eff (ngel :: El | e) Element
+    removeData :: forall e. String -> Element -> ElEff e Element
 
-    replaceWith :: forall e. Element -> Element -> Eff (ngel :: El | e) Element
+    replaceWith :: forall e. Element -> Element -> ElEff e Element
 
-    scope :: forall e a. Element -> Eff (ngel :: El | e) (Maybe (Scope a))
+    scope :: forall e a. Element -> ElEff e (Maybe (Scope a))
 
-    setAllAttr :: forall e a. {  | a } -> Element -> Eff (ngel :: El | e) Element
+    setAllAttr :: forall e a. {  | a } -> Element -> ElEff e Element
 
-    setAllCss :: forall e a. {  | a } -> Element -> Eff (ngel :: El | e) Element
+    setAllCss :: forall e a. {  | a } -> Element -> ElEff e Element
 
-    setAllData :: forall e a. {  | a } -> Element -> Eff (ngel :: El | e) Element
+    setAllData :: forall e a. {  | a } -> Element -> ElEff e Element
 
-    setAllProp :: forall e a. {  | a } -> Element -> Eff (ngel :: El | e) Element
+    setAllProp :: forall e a. {  | a } -> Element -> ElEff e Element
 
-    setAttr :: forall e. String -> String -> Element -> Eff (ngel :: El | e) Element
+    setAttr :: forall e. String -> String -> Element -> ElEff e Element
 
-    setCss :: forall e. String -> String -> Element -> Eff (ngel :: El | e) Element
+    setCss :: forall e. String -> String -> Element -> ElEff e Element
 
-    setData :: forall e a. String -> a -> Element -> Eff (ngel :: El | e) Element
+    setData :: forall e a. String -> a -> Element -> ElEff e Element
 
-    setProp :: forall e. String -> String -> Element -> Eff (ngel :: El | e) Element
+    setProp :: forall e. String -> String -> Element -> ElEff e Element
 
-    setVal :: forall e. String -> Element -> Eff (ngel :: El | e) Element
+    setVal :: forall e. String -> Element -> ElEff e Element
 
-    toggleClass :: forall e. String -> Boolean -> Element -> Eff (ngel :: El | e) Element
+    toggleClass :: forall e. String -> Boolean -> Element -> ElEff e Element
 
-    triggerHandler :: forall e a. String -> [a] -> Element -> Eff (ngel :: El | e) Element
+    triggerHandler :: forall e a. String -> [a] -> Element -> ElEff e Element
 
-    unbind :: forall e f. String -> Element -> Eff (ngel :: El | e) Element
+    unbind :: forall e f. String -> Element -> ElEff e Element
 
-    unbindHandler :: forall e f. String -> DeregisterHandler f -> Element -> Eff (ngel :: El | e) Element
+    unbindHandler :: forall e f. String -> DeregisterHandler f -> Element -> ElEff e Element
 
-    wrap :: forall e. Element -> Element -> Eff (ngel :: El | e) Element
+    wrap :: forall e. Element -> Element -> ElEff e Element
 
 
 ## Module Angular.FormController
@@ -193,30 +199,32 @@
 
     data FormController :: *
 
-    data FormCtrl :: !
+    type FormEff e r = Eff (ngform :: NgForm | e) r
+
+    data NgForm :: !
 
 
 ### Values
 
-    addControl :: forall e a. NgModelController a -> FormController -> Eff (ngform :: FormCtrl | e) Unit
+    addControl :: forall e a. NgModelController a -> FormController -> FormEff e Unit
 
-    dirty :: forall e. FormController -> Eff (ngform :: FormCtrl | e) Boolean
+    dirty :: forall e. FormController -> FormEff e Boolean
 
-    error :: forall e a. FormController -> Eff (ngform :: FormCtrl | e) {  | a }
+    error :: forall e a. FormController -> FormEff e {  | a }
 
-    invalid :: forall e. FormController -> Eff (ngform :: FormCtrl | e) Boolean
+    invalid :: forall e. FormController -> FormEff e Boolean
 
-    pristine :: forall e. FormController -> Eff (ngform :: FormCtrl | e) Boolean
+    pristine :: forall e. FormController -> FormEff e Boolean
 
-    removeControl :: forall e a. NgModelController a -> FormController -> Eff (ngform :: FormCtrl | e) Unit
+    removeControl :: forall e a. NgModelController a -> FormController -> FormEff e Unit
 
-    setDirty :: forall e. FormController -> Eff (ngform :: FormCtrl | e) Unit
+    setDirty :: forall e. FormController -> FormEff e Unit
 
-    setPristine :: forall e. FormController -> Eff (ngform :: FormCtrl | e) Unit
+    setPristine :: forall e. FormController -> FormEff e Unit
 
-    setValidity :: forall e a. ValidationErrorKey -> Boolean -> NgModelController a -> FormController -> Eff (ngform :: FormCtrl | e) Unit
+    setValidity :: forall e a. ValidationErrorKey -> Boolean -> NgModelController a -> FormController -> FormEff e Unit
 
-    valid :: forall e. FormController -> Eff (ngform :: FormCtrl | e) Boolean
+    valid :: forall e. FormController -> FormEff e Boolean
 
 
 ## Module Angular.Http
@@ -267,11 +275,11 @@
 
 ### Types
 
-    data Inj :: !
-
-    type InjEff e a = Eff (nginj :: Inj | e) a
+    type InjEff e a = Eff (nginj :: NgInj | e) a
 
     data Injector :: *
+
+    data NgInj :: !
 
 
 ### Values
@@ -293,11 +301,11 @@
 
 ### Types
 
-    data Loc :: !
-
-    type LocEff e a = Eff (ngloc :: Loc | e) a
+    type LocEff e a = Eff (ngloc :: NgLoc | e) a
 
     data Location :: *
+
+    data NgLoc :: !
 
 
 ### Values
@@ -313,46 +321,46 @@
 
     data Module :: *
 
-    type Read e = Eff (ngrmod :: ReadModule | e) Module
+    data NgReadModule :: !
 
-    data ReadModule :: !
+    data NgRegisterToModule :: !
 
-    type Register e = Eff (nggmod :: RegisterToModule | e) Module
+    data NgWriteModule :: !
 
-    data RegisterToModule :: !
+    type ReadEff e = Eff (ngrmod :: NgReadModule | e) Module
 
-    type Write e = Eff (ngwmod :: WriteModule | e) Module
+    type RegisterEff e = Eff (nggmod :: NgRegisterToModule | e) Module
 
-    data WriteModule :: !
+    type WriteEff e = Eff (ngwmod :: NgWriteModule | e) Module
 
 
 ### Values
 
-    animation :: forall e a. String -> a -> Module -> Register e
+    animation :: forall e a. String -> a -> Module -> RegisterEff e
 
-    config :: forall e a. a -> Module -> Register e
+    config :: forall e a. a -> Module -> RegisterEff e
 
-    constant :: forall e a. String -> a -> Module -> Register e
+    constant :: forall e a. String -> a -> Module -> RegisterEff e
 
-    controller :: forall e a. String -> a -> Module -> Register e
+    controller :: forall e a. String -> a -> Module -> RegisterEff e
 
-    directive :: forall e a. String -> a -> Module -> Register e
+    directive :: forall e a. String -> a -> Module -> RegisterEff e
 
-    factory :: forall e a. String -> a -> Module -> Register e
+    factory :: forall e a. String -> a -> Module -> RegisterEff e
 
-    filter :: forall e a. String -> a -> Module -> Register e
+    filter :: forall e a. String -> a -> Module -> RegisterEff e
 
-    ngmodule :: forall e. String -> Read e
+    ngmodule :: forall e. String -> ReadEff e
 
-    ngmodule' :: forall e. String -> [String] -> Write e
+    ngmodule' :: forall e. String -> [String] -> WriteEff e
 
-    provider :: forall e a. String -> a -> Module -> Register e
+    provider :: forall e a. String -> a -> Module -> RegisterEff e
 
-    run :: forall e a. a -> Module -> Register e
+    run :: forall e a. a -> Module -> RegisterEff e
 
-    service :: forall e a. String -> a -> Module -> Register e
+    service :: forall e a. String -> a -> Module -> RegisterEff e
 
-    value :: forall e a. String -> a -> Module -> Register e
+    value :: forall e a. String -> a -> Module -> RegisterEff e
 
 
 ## Module Angular.NgModelController
@@ -361,9 +369,11 @@
 
     type Formatter a = a -> String
 
+    data NgModel :: !
+
     data NgModelController :: * -> *
 
-    data NgModelCtrl :: !
+    type NgModelEff e r = Eff (ngmodel :: NgModel | e) r
 
     type Parser a = String -> Maybe a
 
@@ -372,47 +382,47 @@
 
 ### Values
 
-    appendFormatters :: forall e a. [Formatter a] -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+    appendFormatters :: forall e a. [Formatter a] -> NgModelController a -> NgModelEff e Unit
 
-    appendParsers :: forall e a. [Parser a] -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+    appendParsers :: forall e a. [Parser a] -> NgModelController a -> NgModelEff e Unit
 
-    appendViewChangeListeners :: forall e a. [Eff e Unit] -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+    appendViewChangeListeners :: forall e a. [Eff e Unit] -> NgModelController a -> NgModelEff e Unit
 
-    dirty :: forall e a. NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Boolean
+    dirty :: forall e a. NgModelController a -> NgModelEff e Boolean
 
-    error :: forall e a b. NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) {  | b }
+    error :: forall e a b. NgModelController a -> NgModelEff e {  | b }
 
-    invalid :: forall e a. NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Boolean
+    invalid :: forall e a. NgModelController a -> NgModelEff e Boolean
 
-    isEmpty :: forall e a. a -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Boolean
+    isEmpty :: forall e a. a -> NgModelController a -> NgModelEff e Boolean
 
-    modelValue :: forall e a. NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) a
+    modelValue :: forall e a. NgModelController a -> NgModelEff e a
 
-    prependFormatters :: forall e a. [Formatter a] -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+    prependFormatters :: forall e a. [Formatter a] -> NgModelController a -> NgModelEff e Unit
 
-    prependParsers :: forall e a. [Parser a] -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+    prependParsers :: forall e a. [Parser a] -> NgModelController a -> NgModelEff e Unit
 
-    prependViewChangeListeners :: forall e a. [Eff e Unit] -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+    prependViewChangeListeners :: forall e a. [Eff e Unit] -> NgModelController a -> NgModelEff e Unit
 
-    pristine :: forall e a. NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Boolean
+    pristine :: forall e a. NgModelController a -> NgModelEff e Boolean
 
-    render :: forall e a. NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+    render :: forall e a. NgModelController a -> NgModelEff e Unit
 
-    setIsEmpty :: forall e a b. (b -> Eff (ngmodel :: NgModelCtrl | e) Boolean) -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) (NgModelController b)
+    setIsEmpty :: forall e a b. (b -> NgModelEff e Boolean) -> NgModelController a -> NgModelEff e (NgModelController b)
 
-    setModelValue :: forall e a b. b -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) (NgModelController b)
+    setModelValue :: forall e a b. b -> NgModelController a -> NgModelEff e (NgModelController b)
 
-    setPristine :: forall e a. NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+    setPristine :: forall e a. NgModelController a -> NgModelEff e Unit
 
-    setRender :: forall e a. Eff (ngmodel :: NgModelCtrl | e) Unit -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+    setRender :: forall e a. NgModelEff e Unit -> NgModelController a -> NgModelEff e Unit
 
-    setValidity :: forall e a. ValidationErrorKey -> Boolean -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+    setValidity :: forall e a. ValidationErrorKey -> Boolean -> NgModelController a -> NgModelEff e Unit
 
-    setViewValue :: forall e a. String -> NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Unit
+    setViewValue :: forall e a. String -> NgModelController a -> NgModelEff e Unit
 
-    valid :: forall e a. NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) Boolean
+    valid :: forall e a. NgModelController a -> NgModelEff e Boolean
 
-    viewValue :: forall e a. NgModelController a -> Eff (ngmodel :: NgModelCtrl | e) String
+    viewValue :: forall e a. NgModelController a -> NgModelEff e String
 
 
 ## Module Angular.Q
@@ -477,36 +487,43 @@
 
 ### Types
 
-    data ApplyExpr e r a
+    data ApplyExpr e r a where
+      DefaultApplyExpr :: ApplyExpr e r a
+      StringApplyExpr :: String -> ApplyExpr e r a
+      FnApplyExpr :: Scope a -> Eff e r -> ApplyExpr e r a
 
     type Event e a b = { defaultPrevented :: Boolean, preventDefault :: Eff e Unit, stopPropagation :: Eff e Unit, name :: String, currentScope :: Scope b, targetScope :: Scope a }
 
+    data NgReadScope :: !
+
+    data NgScope :: !
+
+    data NgWriteScope :: !
+
     data OnDeregistration :: *
 
-    type Read e a = Eff (ngrscope :: ReadScope | e) {  | a }
+    type ReadEff e a = Eff (ngrscope :: NgReadScope | e) {  | a }
 
-    data ReadScope :: !
-
-    type ReadWrite e r = Eff (ngwscope :: WriteScope, ngrscope :: ReadScope | e) r
+    type ReadWriteEff e r = Eff (ngwscope :: NgWriteScope, ngrscope :: NgReadScope | e) r
 
     data Scope :: # * -> *
+
+    type ScopeEff e r = Eff (ngscope :: NgScope | e) r
 
     data WatchDeregistration :: *
 
     type WatchListener e a b = a -> a -> Scope b -> Eff e Unit
 
-    type Write e = Eff (ngwscope :: WriteScope | e) Unit
-
-    data WriteScope :: !
+    type WriteEff e = Eff (ngwscope :: NgWriteScope | e) Unit
 
 
 ### Values
 
-    apply :: forall e r a. ApplyExpr e r a -> Scope a -> Eff e r
+    apply :: forall e r a. ApplyExpr e r a -> Scope a -> ScopeEff e r
 
     applyExpr :: forall e r a. (Scope a -> Eff e r) -> ApplyExpr e r a
 
-    broadcast :: forall e a b c. String -> a -> Scope b -> Eff e (Event e b c)
+    broadcast :: forall e a b c. String -> a -> Scope b -> ScopeEff e (Event e b c)
 
     defaultApplyExpr :: forall e r a. ApplyExpr e r a
 
@@ -514,63 +531,67 @@
 
     deregisterWatch :: WatchDeregistration -> Unit
 
-    destroy :: forall e a. Scope a -> Eff e Unit
+    destroy :: forall e a. Scope a -> ScopeEff e Unit
 
-    digest :: forall e a. Scope a -> Eff e Unit
+    digest :: forall e a. Scope a -> ScopeEff e Unit
 
-    emit :: forall e a b c. String -> a -> Scope b -> Eff e (Event e b c)
+    emit :: forall e a b c. String -> a -> Scope b -> ScopeEff e (Event e b c)
 
-    evalAsync :: forall e r a. Maybe (Scope a -> Eff e r) -> Scope a -> Eff e r
+    evalAsync :: forall e r a. Maybe (Scope a -> Eff e r) -> Scope a -> ScopeEff e r
 
-    evalSync :: forall e r a b. Maybe (Scope a -> Eff e r) -> Maybe {  | b } -> Scope a -> Eff e r
+    evalSync :: forall e r a b. Maybe (Scope a -> Eff e r) -> Maybe {  | b } -> Scope a -> ScopeEff e r
 
-    extendScope :: forall e a b. {  | b } -> Scope a -> Write e
+    extendScope :: forall e a b. {  | b } -> Scope a -> WriteEff e
 
     id :: forall a. Scope a -> String
 
-    modifyScope :: forall e f a b. ({  | a } -> Eff f {  | b }) -> Scope a -> ReadWrite e Unit
+    modifyScope :: forall e f a b. ({  | a } -> Eff f {  | b }) -> Scope a -> ReadWriteEff e Unit
 
-    newScope :: forall a b. Boolean -> Scope a -> Scope b
+    newScope :: forall e a b. Boolean -> Scope a -> ScopeEff e (Scope b)
 
-    on :: forall e a b c. String -> (Event e a b -> c -> Eff e Unit) -> Scope b -> Eff e OnDeregistration
+    on :: forall e a b c. String -> (Event e a b -> c -> Eff e Unit) -> Scope b -> ScopeEff e OnDeregistration
 
     parent :: forall a b. Scope a -> Maybe (Scope b)
 
-    readScope :: forall e a. Scope a -> Read e a
+    readScope :: forall e a. Scope a -> ReadEff e a
 
     root :: forall a b. Scope a -> Scope b
 
     stringApplyExpr :: forall e r a. String -> ApplyExpr e r a
 
-    watch :: forall e a b. String -> Maybe (WatchListener e a b) -> Boolean -> Scope b -> Eff e WatchDeregistration
+    watch :: forall e a b. String -> Maybe (WatchListener e a b) -> Boolean -> Scope b -> ScopeEff e WatchDeregistration
 
-    watchCollection :: forall e a b. String -> WatchListener e a b -> Scope b -> Eff e WatchDeregistration
+    watchCollection :: forall e a b. String -> WatchListener e a b -> Scope b -> ScopeEff e WatchDeregistration
 
-    writeScope :: forall e a b. String -> b -> Scope a -> Write e
+    writeScope :: forall e a b. String -> b -> Scope a -> WriteEff e
 
 
 ## Module Angular.This
 
 ### Types
 
-    type Read e a = Eff (ngrthis :: ReadThis | e) {  | a }
+    data NgReadThis :: !
 
-    type ReadWrite e r = Eff (ngwthis :: WriteThis, ngrthis :: ReadThis | e) r
+    data NgWriteThis :: !
+
+    type ReadEff e a = Eff (ngrthis :: NgReadThis | e) {  | a }
+
+    type ReadWriteEff e r = Eff (ngwthis :: NgWriteThis, ngrthis :: NgReadThis | e) r
 
     data This :: # * -> *
 
-    type Write e = Eff (ngwthis :: WriteThis | e) Unit
+    type WriteEff e = Eff (ngwthis :: NgWriteThis | e) Unit
 
 
 ### Values
 
-    extendThis :: forall e a b. {  | b } -> This a -> Write e
+    extendThis :: forall e a b. {  | b } -> This a -> WriteEff e
 
-    modifyThis :: forall e f a b. ({  | a } -> Eff f {  | b }) -> This a -> ReadWrite e Unit
+    modifyThis :: forall e f a b. ({  | a } -> Eff f {  | b }) -> This a -> ReadWriteEff e Unit
 
-    readThis :: forall e a. This a -> Read e a
+    readThis :: forall e a. This a -> ReadEff e a
 
-    writeThis :: forall e a b. String -> b -> This a -> Write e
+    writeThis :: forall e a b. String -> b -> This a -> WriteEff e
 
 
 ## Module DOM.Event
@@ -615,8 +636,6 @@
 
 ### Types
 
-    type ConfEff e r = Eff (nghttp :: HTTP | e) r
-
     data ForeignConfig :: *
 
     data ForeignResponse :: *
@@ -624,7 +643,7 @@
 
 ### Values
 
-    foreignConfig :: forall e. ConfEff e ForeignConfig
+    foreignConfig :: forall e. HttpEff e ForeignConfig
 
     getConfigCache :: ForeignConfig -> Either Boolean Cache
 
@@ -658,27 +677,27 @@
 
     getResponseStatusText :: ForeignResponse -> String
 
-    setConfigCache :: forall e. Either Boolean Cache -> ForeignConfig -> ConfEff e Unit
+    setConfigCache :: forall e. Either Boolean Cache -> ForeignConfig -> HttpEff e Unit
 
-    setConfigHeaders :: forall e. Headers -> ForeignConfig -> ConfEff e Unit
+    setConfigHeaders :: forall e. Headers -> ForeignConfig -> HttpEff e Unit
 
-    setConfigMethod :: forall e. Method -> ForeignConfig -> ConfEff e Unit
+    setConfigMethod :: forall e. Method -> ForeignConfig -> HttpEff e Unit
 
-    setConfigParams :: forall e a. {  | a } -> ForeignConfig -> ConfEff e Unit
+    setConfigParams :: forall e a. {  | a } -> ForeignConfig -> HttpEff e Unit
 
-    setConfigRequestData :: forall e a. RequestData a -> ForeignConfig -> ConfEff e Unit
+    setConfigRequestData :: forall e a. RequestData a -> ForeignConfig -> HttpEff e Unit
 
-    setConfigResponseType :: forall e. ResponseType -> ForeignConfig -> ConfEff e Unit
+    setConfigResponseType :: forall e. ResponseType -> ForeignConfig -> HttpEff e Unit
 
-    setConfigTimeout :: forall e a. Either Number (Promise a) -> ForeignConfig -> ConfEff e Unit
+    setConfigTimeout :: forall e a. Either Number (Promise a) -> ForeignConfig -> HttpEff e Unit
 
-    setConfigUrl :: forall e. Url -> ForeignConfig -> ConfEff e Unit
+    setConfigUrl :: forall e. Url -> ForeignConfig -> HttpEff e Unit
 
-    setConfigWithCredentials :: forall e. Boolean -> ForeignConfig -> ConfEff e Unit
+    setConfigWithCredentials :: forall e. Boolean -> ForeignConfig -> HttpEff e Unit
 
-    setConfigXsrfCookieName :: forall e. String -> ForeignConfig -> ConfEff e Unit
+    setConfigXsrfCookieName :: forall e. String -> ForeignConfig -> HttpEff e Unit
 
-    setConfigXsrfHeaderName :: forall e. String -> ForeignConfig -> ConfEff e Unit
+    setConfigXsrfHeaderName :: forall e. String -> ForeignConfig -> HttpEff e Unit
 
 
 ## Module Angular.Http.Types
@@ -695,12 +714,12 @@
 
     data ForeignTimeout :: *
 
-    data HTTP :: !
-
     type Header  = Tuple String (Either String (Unit -> String))
 
     newtype Headers where
       Headers :: [Header] -> Headers
+
+    type HttpEff e r = Eff (nghttp :: NgHttp | e) r
 
     data Method where
       GET :: Method
@@ -711,6 +730,8 @@
       HEAD :: Method
       OPTIONS :: Method
       JSONP :: Method
+
+    data NgHttp :: !
 
     data RequestData a where
       NoRequestData :: RequestData a

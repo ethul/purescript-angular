@@ -6,7 +6,7 @@ import Control.Monad.Eff
 
 import qualified DOM.Node as D
 
-import Angular.Attributes (Attr(), get)
+import Angular.Attributes (get)
 import Angular.Element ((!!))
 import Angular.Scope (watch, apply, applyExpr)
 
