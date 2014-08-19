@@ -58,7 +58,7 @@ module Angular.Element
 import Prelude (Unit())
 
 import Control.Monad.Eff
-import Data.Function (Fn3(), Fn4(), runFn3, runFn4)
+import Data.Function (Fn3(), Fn4(), Fn5(), runFn3, runFn4, runFn5)
 import Data.Maybe
 
 import DOM.Event (Event())
@@ -517,16 +517,22 @@ foreign import wrap
   \ }"
   :: forall e. Element -> Element -> Eff (ngel :: El | e) Element
 
-foreign import controller
-  " function controller(nameOpt){ \
-  \   return function(el){ \
-  \     return function(){ \
-  \       var a = el.controller(nameOpt.values[0]); \
-  \       return angular.isDefined(a) ? Data_Maybe.Just(a) : Data_Maybe.Nothing; \
-  \     }; \
+foreign import controllerFn
+  " function controllerFn(fromMaybe, nothing, just, name, el){ \
+  \   return function(){ \
+  \     var a = el.controller(fromMaybe(undefined)(name)); \
+  \     return angular.isDefined(a) ? just(a) : nothing; \
   \   }; \
   \ }"
-  :: forall e a. Maybe String -> Element -> Eff (ngel :: El | e) (Maybe a)
+  :: forall e a. Fn5 (String -> Maybe String -> String)
+                     (Maybe a)
+                     (a -> Maybe a)
+                     (Maybe String)
+                     Element
+                     (Eff (ngel :: El | e) (Maybe a))
+
+controller :: forall e a. Maybe String -> Element -> Eff (ngel :: El | e) (Maybe a)
+controller = runFn5 controllerFn fromMaybe Nothing Just
 
 foreign import injectorFn
   " function injectorFn(nothing, just, el){ \

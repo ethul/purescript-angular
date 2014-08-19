@@ -16,6 +16,7 @@ module Angular.Cache
 
 import Control.Monad.Eff
 import Data.Maybe
+import Data.Function
 
 foreign import data CACHE :: !
 
@@ -29,17 +30,20 @@ type Name = String
 
 type Options a = { capacity :: Number | a }
 
-foreign import cache
-  " function cache(name){ \
-  \   return function(opts){ \
-  \     return function($cacheFactory){ \
-  \       return function(){ \
-  \         return $cacheFactory(name, opts.values[0]); \
-  \       }; \
-  \     }; \
+cache :: forall e a. Name -> Maybe (Options a) -> CacheFactory -> Eff (ngcache :: CACHE | e) Cache
+cache = runFn4 cacheFn fromMaybe
+
+foreign import cacheFn
+  " function cacheFn(fromMaybe, name, opts, $cacheFactory){ \
+  \   return function(){ \
+  \     return $cacheFactory(name, fromMaybe(undefined)(opts)); \
   \   }; \
   \ } "
-  :: forall e a. Name -> Maybe (Options a) -> CacheFactory -> Eff (ngcache :: CACHE | e) Cache
+  :: forall e a. Fn4 (Options a -> Maybe (Options a) -> Options a)
+                     Name
+                     (Maybe (Options a))
+                     CacheFactory
+                     (Eff (ngcache :: CACHE | e) Cache)
 
 foreign import put
   "  function put(key){ \
