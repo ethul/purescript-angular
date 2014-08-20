@@ -39,7 +39,7 @@ import Data.Tuple
 
 import Angular.Cache
 import Angular.Http.Types
-import Angular.Q
+import Angular.Promise (Promise())
 
 foreign import data ForeignConfig :: *
 
@@ -103,10 +103,10 @@ setConfigCache = let k = "cache" in either (runFn3 setConfigPropFn k) (runFn3 se
 getConfigCache :: ForeignConfig -> (Either Boolean Cache)
 getConfigCache c = runFn3 readCacheFn Left Right $ runFn2 getConfigPropFn "cache" c
 
-setConfigTimeout :: forall e a. Either Number (Promise a) -> ForeignConfig -> HttpEff e Unit
+setConfigTimeout :: forall e a b. Either Number (Promise a b) -> ForeignConfig -> HttpEff e Unit
 setConfigTimeout = let k = "timeout" in either (runFn3 setConfigPropFn k) (runFn3 setConfigPropFn k)
 
-getConfigTimeout :: forall r. ForeignConfig -> Either Number (Promise r)
+getConfigTimeout :: forall a b. ForeignConfig -> Either Number (Promise a b)
 getConfigTimeout c = runFn3 readTimeoutFn Left Right $ runFn2 getConfigPropFn "timeout" c
 
 setConfigWithCredentials :: forall e. Boolean -> ForeignConfig -> HttpEff e Unit

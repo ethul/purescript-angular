@@ -36,7 +36,7 @@ import Data.Function
 import Data.Tuple
 
 import Angular.Cache (Cache())
-import Angular.Q (Promise())
+import Angular.Promise (Promise())
 
 import qualified DOM.Types as D
 
@@ -246,7 +246,7 @@ foreign import readTimeoutFn
  " function readTimeoutFn(left, right, timeout){ \
  \   return angular.isNumber(timeout) ? left(timeout) : right(timeout); \
  \ } "
- :: forall r. Fn3 (Number -> Either Number (Promise r))
-                  (Promise r -> Either Number (Promise r))
-                  ForeignTimeout
-                  (Either Number (Promise r))
+ :: forall a b. Fn3 (Number -> Either Number (Promise a b))
+                    (Promise a b -> Either Number (Promise a b))
+                    ForeignTimeout
+                    (Either Number (Promise a b))
