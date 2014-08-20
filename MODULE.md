@@ -75,6 +75,28 @@
     removeAll :: forall e. Cache -> CacheEff e Unit
 
 
+## Module Angular.Deferred
+
+### Types
+
+    data Deferred :: * -> * -> *
+
+    type DeferredEff e r = Eff (ngdeferred :: NgDeferred | e) r
+
+    data NgDeferred :: !
+
+
+### Values
+
+    notify :: forall e s a b. s -> Deferred a b -> DeferredEff e Unit
+
+    promise :: forall e a b. Deferred a b -> DeferredEff e (Promise a b)
+
+    reject :: forall e a b. a -> Deferred a b -> DeferredEff e Unit
+
+    resolve :: forall e a b. b -> Deferred a b -> DeferredEff e Unit
+
+
 ## Module Angular.Element
 
 ### Types
@@ -231,44 +253,44 @@
 
 ### Types
 
-    type Config a b c = { responseType :: ResponseType, withCredentials :: Boolean, timeout :: Either Number (Promise c), cache :: Either Boolean Cache, xsrfCookieName :: String, xsrfHeaderName :: String, headers :: Headers, "data" :: RequestData b, params :: {  | a }, url :: Url, method :: Method }
+    type Config a b c d = { responseType :: ResponseType, withCredentials :: Boolean, timeout :: Either Number (Promise c d), cache :: Either Boolean Cache, xsrfCookieName :: String, xsrfHeaderName :: String, headers :: Headers, "data" :: RequestData b, params :: {  | a }, url :: Url, method :: Method }
 
     data Http :: *
 
-    type HttpResponse e r a b c = HttpEff e (Promise (Response r a b c))
+    type HttpResponse e r a b c d = HttpEff e (Promise (Response r a b c d) (Response r a b c d))
 
-    type Response r a b c = { statusText :: String, config :: Config a b c, headers :: [String] -> String, status :: Status, "data" :: ResponseData r }
+    type Response r a b c d = { statusText :: String, config :: Config a b c d, headers :: [String] -> String, status :: Status, "data" :: ResponseData r }
 
 
 ### Values
 
-    config :: forall a b c. Config a b c
+    config :: forall a b c d. Config a b c d
 
-    del :: forall e r a b c. Url -> Http -> HttpResponse e r a b c
+    del :: forall e r a b c d. Url -> Http -> HttpResponse e r a b c d
 
-    del' :: forall e r a b c. Url -> Config a b c -> Http -> HttpResponse e r a b c
+    del' :: forall e r a b c d. Url -> Config a b c d -> Http -> HttpResponse e r a b c d
 
-    get :: forall e r a b c. Url -> Http -> HttpResponse e r a b c
+    get :: forall e r a b c d. Url -> Http -> HttpResponse e r a b c d
 
-    get' :: forall e r a b c. Url -> Config a b c -> Http -> HttpResponse e r a b c
+    get' :: forall e r a b c d. Url -> Config a b c d -> Http -> HttpResponse e r a b c d
 
-    head :: forall e r a b c. Url -> Http -> HttpResponse e r a b c
+    head :: forall e r a b c d. Url -> Http -> HttpResponse e r a b c d
 
-    head' :: forall e r a b c. Url -> Config a b c -> Http -> HttpResponse e r a b c
+    head' :: forall e r a b c d. Url -> Config a b c d -> Http -> HttpResponse e r a b c d
 
-    http :: forall e r a b c. Config a b c -> Http -> HttpResponse e r a b c
+    http :: forall e r a b c d. Config a b c d -> Http -> HttpResponse e r a b c d
 
-    jsonp :: forall e r a b c. Url -> Http -> HttpResponse e r a b c
+    jsonp :: forall e r a b c d. Url -> Http -> HttpResponse e r a b c d
 
-    jsonp' :: forall e r a b c. Url -> Config a b c -> Http -> HttpResponse e r a b c
+    jsonp' :: forall e r a b c d. Url -> Config a b c d -> Http -> HttpResponse e r a b c d
 
-    post :: forall e r a b c. Url -> RequestData b -> Http -> HttpResponse e r a b c
+    post :: forall e r a b c d. Url -> RequestData b -> Http -> HttpResponse e r a b c d
 
-    post' :: forall e r a b c. Url -> RequestData b -> Config a b c -> Http -> HttpResponse e r a b c
+    post' :: forall e r a b c d. Url -> RequestData b -> Config a b c d -> Http -> HttpResponse e r a b c d
 
-    put :: forall e r a b c. Url -> RequestData b -> Http -> HttpResponse e r a b c
+    put :: forall e r a b c d. Url -> RequestData b -> Http -> HttpResponse e r a b c d
 
-    put' :: forall e r a b c. Url -> RequestData b -> Config a b c -> Http -> HttpResponse e r a b c
+    put' :: forall e r a b c d. Url -> RequestData b -> Config a b c d -> Http -> HttpResponse e r a b c d
 
 
 ## Module Angular.Injector
@@ -425,47 +447,61 @@
     viewValue :: forall e a. NgModelController a -> NgModelEff e String
 
 
-## Module Angular.Q
+## Module Angular.Promise
 
 ### Types
 
-    data Promise :: * -> *
-
-    data Q :: *
+    data Promise :: * -> * -> *
 
 
 ### Type Class Instances
 
-    instance applicativePromise :: Applicative Promise
+    instance applicativePromise :: Applicative (Promise a)
 
-    instance applyPromise :: Apply Promise
+    instance applyPromise :: Apply (Promise a)
 
-    instance bindPromise :: Bind Promise
+    instance bifunctorPromise :: Bifunctor Promise
 
-    instance functorPromise :: Functor Promise
+    instance bindPromise :: Bind (Promise a)
 
-    instance monadPromise :: Monad Promise
+    instance functorPromise :: Functor (Promise a)
+
+    instance monadPromise :: Monad (Promise a)
 
 
 ### Values
 
-    all :: forall a. [Promise a] -> Q -> Promise [a]
+    catch' :: forall a b c d. (a -> Promise c d) -> Promise a b -> Promise c d
 
-    catch' :: forall a b c. Promise a -> (b -> Promise c) -> Promise c
+    finally' :: forall e r a b. Eff e r -> Promise a b -> Promise a b
 
-    finally' :: forall a b. Promise a -> (Unit -> b) -> Promise a
+    then' :: forall a b c d. (b -> Promise c d) -> Promise a b -> Promise c d
 
-    reject :: forall a. a -> Q -> Promise a
+    then'' :: forall a b c d. (b -> Promise c d) -> (a -> Promise c d) -> Promise a b -> Promise c d
 
-    resolve :: forall a. a -> Q -> Promise a
+    then''' :: forall e s t a b c d. (b -> Promise c d) -> (a -> Promise c d) -> (s -> Eff e t) -> Promise a b -> Promise c d
 
-    then' :: forall a b. Promise a -> (a -> Promise b) -> Promise b
 
-    then'' :: forall a b c. Promise a -> (a -> Promise b) -> (c -> Promise b) -> Promise b
+## Module Angular.Q
 
-    then''' :: forall a b c d. Promise a -> (a -> Promise b) -> (b -> Promise b) -> (c -> d) -> Promise b
+### Types
 
-    when :: forall a. a -> Q -> Promise a
+    data NgQ :: !
+
+    data Q :: *
+
+    type QEff e r = Eff (ngq :: NgQ | e) r
+
+
+### Values
+
+    all :: forall e a b. [Promise a b] -> Q -> QEff e (Promise b [a])
+
+    defer :: forall e a b. Q -> QEff e (Deferred a b)
+
+    reject :: forall e a b. a -> Q -> QEff e (Promise a b)
+
+    when :: forall e a b. b -> Q -> QEff e (Promise a b)
 
 
 ## Module Angular.ST
@@ -657,7 +693,7 @@
 
     getConfigResponseType :: ForeignConfig -> ResponseType
 
-    getConfigTimeout :: forall r. ForeignConfig -> Either Number (Promise r)
+    getConfigTimeout :: forall a b. ForeignConfig -> Either Number (Promise a b)
 
     getConfigUrl :: ForeignConfig -> Url
 
@@ -689,7 +725,7 @@
 
     setConfigResponseType :: forall e. ResponseType -> ForeignConfig -> HttpEff e Unit
 
-    setConfigTimeout :: forall e a. Either Number (Promise a) -> ForeignConfig -> HttpEff e Unit
+    setConfigTimeout :: forall e a b. Either Number (Promise a b) -> ForeignConfig -> HttpEff e Unit
 
     setConfigUrl :: forall e. Url -> ForeignConfig -> HttpEff e Unit
 
@@ -806,7 +842,7 @@
 
     readStatus :: Number -> Status
 
-    readTimeoutFn :: forall r. Fn3 (Number -> Either Number (Promise r)) (Promise r -> Either Number (Promise r)) ForeignTimeout (Either Number (Promise r))
+    readTimeoutFn :: forall a b. Fn3 (Number -> Either Number (Promise a b)) (Promise a b -> Either Number (Promise a b)) ForeignTimeout (Either Number (Promise a b))
 
     stringHeader :: String -> String -> Header
 
