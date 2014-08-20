@@ -111,7 +111,8 @@ controller scope location = do
   todos <- get
   pushAllSTArray todosRef todos
   let remainingCount = foldl (\b a -> if a.completed then b else b + 1) 0 todos
-  extendScope { newTodo: ""
+  extendScope { fromMaybe: fromMaybe
+              , newTodo: ""
               , editedTodo: Nothing
               , originalTodo: Nothing
               , todos: todosRef

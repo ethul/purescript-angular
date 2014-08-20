@@ -319,6 +319,32 @@
     invoke :: forall e r a b c. a -> Maybe {  | b } -> Maybe {  | c } -> Injector -> InjEff e r
 
 
+## Module Angular.Interval
+
+### Types
+
+    data Interval :: *
+
+    type IntervalEff e r = Eff (nginterval :: NgInterval | e) r
+
+    type IntervalPromise  = Promise Unit Number
+
+    data NgInterval :: !
+
+
+### Values
+
+    cancel :: forall e. IntervalPromise -> Interval -> IntervalEff e Boolean
+
+    interval :: forall e f r. Eff f r -> Number -> Number -> Boolean -> Interval -> IntervalEff e IntervalPromise
+
+    interval' :: forall e f r. Eff f r -> Number -> Number -> Interval -> IntervalEff e IntervalPromise
+
+    interval'' :: forall e f r. Eff f r -> Number -> Interval -> IntervalEff e IntervalPromise
+
+    intervalk :: forall e f r. Number -> Number -> Boolean -> Interval -> Eff f r -> IntervalEff e IntervalPromise
+
+
 ## Module Angular.Location
 
 ### Types
@@ -628,6 +654,32 @@
     readThis :: forall e a. This a -> ReadEff e a
 
     writeThis :: forall e a b. String -> b -> This a -> WriteEff e
+
+
+## Module Angular.Timeout
+
+### Types
+
+    data NgTimeout :: !
+
+    data Timeout :: *
+
+    type TimeoutEff e r = Eff (ngtimeout :: NgTimeout | e) r
+
+    type TimeoutPromise a = Promise Error a
+
+
+### Values
+
+    cancel :: forall e r. TimeoutPromise r -> Timeout -> TimeoutEff e Boolean
+
+    timeout :: forall e f r. Eff f r -> Number -> Boolean -> Timeout -> TimeoutEff e (TimeoutPromise r)
+
+    timeout' :: forall e f r. Eff f r -> Number -> Timeout -> TimeoutEff e (TimeoutPromise r)
+
+    timeout'' :: forall e f r. Eff f r -> Timeout -> TimeoutEff e (TimeoutPromise r)
+
+    timeoutk :: forall e f r. Number -> Boolean -> Timeout -> Eff f r -> TimeoutEff e (TimeoutPromise r)
 
 
 ## Module DOM.Event

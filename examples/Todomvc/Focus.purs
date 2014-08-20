@@ -9,28 +9,20 @@ import qualified DOM.Node as D
 import Angular.Attributes (get)
 import Angular.Element ((!!))
 import Angular.Scope (watch, apply, applyExpr)
+import Angular.Timeout (timeout)
 
 foreign import data FocusDirective :: *
 
-link scope element attrs = do
+link scope element attrs ngtimeout = do
   as <- get attrs
-  watch as.todoFocus (Just (\a _ _ -> when a $ zeroTimeout
-                                             $ maybe (return unit) D.focus (element !! 0))) false scope
-
-foreign import zeroTimeout
-  " function zeroTimeout(k) { \
-  \   return function(){ \
-  \     var $timeout = angular.element(document).injector().get('$timeout'); \
-  \     return $timeout(k, 0, false); \
-  \   }; \
-  \ }"
-  :: forall e. Eff e Unit -> Eff e Unit
+  let k = maybe (return unit) D.focus (element !! 0)
+  watch as.todoFocus (Just (\a _ _ -> when a $ const unit <$> (timeout k 0 false ngtimeout))) false scope
 
 foreign import focus
-  " /*@ngInject*/function focus(){ \
+  " /*@ngInject*/function focus($timeout){ \
   \   return { \
   \     link: function($scope, $element, $attrs){ \
-  \       return link($scope)($element)($attrs)(); \
+  \       return link($scope)($element)($attrs)($timeout)(); \
   \     } \
   \   }; \
   \ } " :: FocusDirective
