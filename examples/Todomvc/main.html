@@ -33,7 +33,7 @@
         <label for="toggle-all">Mark all as complete</label>
         <ul id="todo-list">
           <li ng-repeat="todo in todos | filter:statusFilter track by $index"
-              ng-class="{completed: todo.completed, editing: todo == editedTodo.values[0]}">
+              ng-class="{completed: todo.completed, editing: todo == fromMaybe(undefined)(editedTodo)}">
             <div class="view">
               <input class="toggle"
                      type="checkbox"
@@ -49,7 +49,7 @@
                      ng-model="todo.title"
                      ng-blur="doneEditing(todo)()"
                      todo-escape="revertEditing(todo)()"
-                     todo-focus="todo == editedTodo.values[0]">
+                     todo-focus="todo == fromMaybe(undefined)(editedTodo)">
             </form>
           </li>
         </ul>
