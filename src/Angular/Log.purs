@@ -21,7 +21,7 @@ type LogEff e = Eff (nglog :: NgLog | e) Unit
 foreign import logFn
   " function logFn(fn, message, $log){ \
   \   return function(){ \
-  \     return $log[fn](expression); \
+  \     return $log[fn](message); \
   \   }; \
   \ } "
   :: forall e a. Fn3 String a Log (LogEff e)
