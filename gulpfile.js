@@ -6,7 +6,7 @@ var gulp = require('gulp')
   , http = require('http')
   , nstatic = require('node-static')
   , config = {
-      clean: ['dist', 'js', 'externs'],
+      clean: ['dist', '.psci_modules'],
       purescript: {
         src: [
           'bower_components/purescript-*/src/**/*.purs*',
