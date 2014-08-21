@@ -473,6 +473,38 @@
     viewValue :: forall e a. NgModelController a -> NgModelEff e String
 
 
+## Module Angular.Parse
+
+### Types
+
+    type Expression  = String
+
+    data Getter :: * -> *
+
+    data NgParse :: !
+
+    data Parse :: *
+
+    type ParseEff e r = Eff (ngparse :: NgParse | e) r
+
+    data Setter :: * -> *
+
+
+### Values
+
+    assign :: forall a. Getter a -> Maybe (Setter a)
+
+    constant :: forall a. Getter a -> Boolean
+
+    get :: forall e a b c. {  | a } -> {  | b } -> Getter c -> ParseEff e c
+
+    literal :: forall a. Getter a -> Boolean
+
+    parse :: forall e a. Expression -> Parse -> ParseEff e (Getter a)
+
+    set :: forall e a b. {  | a } -> b -> Setter b -> ParseEff e b
+
+
 ## Module Angular.Promise
 
 ### Types
