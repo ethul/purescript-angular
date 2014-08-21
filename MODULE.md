@@ -363,6 +363,30 @@
     setPath :: forall e. String -> Location -> LocEff e String
 
 
+## Module Angular.Log
+
+### Types
+
+    data Log :: *
+
+    type LogEff e = Eff (nglog :: NgLog | e) Unit
+
+    data NgLog :: !
+
+
+### Values
+
+    debug :: forall e a. a -> Log -> LogEff e
+
+    error :: forall e a. a -> Log -> LogEff e
+
+    info :: forall e a. a -> Log -> LogEff e
+
+    log :: forall e a. a -> Log -> LogEff e
+
+    warn :: forall e a. a -> Log -> LogEff e
+
+
 ## Module Angular.Module
 
 ### Types
