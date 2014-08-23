@@ -11,6 +11,32 @@
     extend :: forall e a b c. {  | a } -> {  | b } -> Eff e {  | c }
 
 
+## Module Angular.Animate
+
+### Types
+
+    data Animate :: *
+
+    type AnimateEff e = Eff (nganimate :: NgAnimate | e) Unit
+
+    data NgAnimate :: !
+
+
+### Values
+
+    addClass :: forall e f r. Element -> String -> Maybe (Eff f r) -> Animate -> AnimateEff e
+
+    enter :: forall e f r. Element -> Element -> Element -> Maybe (Eff f r) -> Animate -> AnimateEff e
+
+    leave :: forall e f r. Element -> Maybe (Eff f r) -> Animate -> AnimateEff e
+
+    move :: forall e f r. Element -> Element -> Element -> Maybe (Eff f r) -> Animate -> AnimateEff e
+
+    removeClass :: forall e f r. Element -> String -> Maybe (Eff f r) -> Animate -> AnimateEff e
+
+    setClass :: forall e f r. Element -> String -> String -> Maybe (Eff f r) -> Animate -> AnimateEff e
+
+
 ## Module Angular.Attributes
 
 ### Types
