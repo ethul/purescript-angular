@@ -319,6 +319,28 @@
     invoke :: forall e r a b c. a -> Maybe {  | b } -> Maybe {  | c } -> Injector -> InjEff e r
 
 
+## Module Angular.Interpolate
+
+### Types
+
+    type Expression a = {  | a } -> String
+
+    data Interpolate :: *
+
+    type InterpolateEff e a = Eff (nginterpolate :: NgInterpolate | e) a
+
+    data NgInterpolate :: !
+
+
+### Values
+
+    endSymbol :: Interpolate -> String
+
+    interpolate :: forall e a. String -> Maybe Boolean -> Maybe String -> Interpolate -> InterpolateEff e (Expression a)
+
+    startSymbol :: Interpolate -> String
+
+
 ## Module Angular.Interval
 
 ### Types
