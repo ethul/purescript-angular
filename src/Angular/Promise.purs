@@ -1,10 +1,12 @@
 module Angular.Promise
-  ( Promise()
+  ( Promise(..)
   , then'
   , then''
   , then'''
   , catch'
   , finally'
+  , pureResolve
+  , pureReject
   ) where
 
 import Control.Monad.Eff
