@@ -102,7 +102,8 @@ watchLocationPath scope =
                                 _            -> extendScope { statusFilter: { } } scope
   in watch expr (return listener) false scope
 
-controller scope location = do
+todoctrl scope this location = do
+  t <- readThis this
   path <- getPath location
   if S.length path == 0 then setPath "/" location else return ""
   watchRemainingCount scope
@@ -126,10 +127,3 @@ controller scope location = do
               , doneEditing: doneEditing scope
               , removeTodo: removeTodo scope
               , revertEditing: revertEditing scope } scope
-
-foreign import todoctrl
-  " /*@ngInject*/function todoctrl($scope, $location) { \
-  \   var impl = controller($scope)($location); \
-  \   return impl.apply(this, []); \
-  \ } "
-  :: forall e a. Scope a -> Location -> Eff e Unit
