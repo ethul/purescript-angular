@@ -101,6 +101,102 @@
     removeAll :: forall e. Cache -> CacheEff e Unit
 
 
+## Module Angular.DI
+
+### Types
+
+    data Annotated :: * -> *
+
+    newtype RootElement where
+      RootElement :: Element -> RootElement
+
+    newtype RootScope a where
+      RootScope :: Scope a -> RootScope
+
+
+### Type Classes
+
+    class Dependency a where
+      name :: String
+
+    class Injectable a where
+      dependencies :: a -> [String]
+
+
+### Type Class Instances
+
+    instance dependencyAnimate :: Dependency Animate
+
+    instance dependencyAttributes :: Dependency Attributes
+
+    instance dependencyCacheFactory :: Dependency CacheFactory
+
+    instance dependencyElement :: Dependency Element
+
+    instance dependencyHttp :: Dependency Http
+
+    instance dependencyInjector :: Dependency Injector
+
+    instance dependencyInterpolate :: Dependency Interpolate
+
+    instance dependencyInterval :: Dependency Interval
+
+    instance dependencyLocation :: Dependency Location
+
+    instance dependencyLog :: Dependency Log
+
+    instance dependencyParse :: Dependency Parse
+
+    instance dependencyQ :: Dependency Q
+
+    instance dependencyRootElement :: Dependency RootElement
+
+    instance dependencyRootScope :: Dependency (RootScope a)
+
+    instance dependencyScope :: Dependency (Scope a)
+
+    instance dependencyThis :: Dependency (This a)
+
+    instance dependencyTimeout :: Dependency Timeout
+
+    instance injectableEff :: Injectable (Eff e r)
+
+    instance injectableFn :: (Dependency a, Injectable b) => Injectable (a -> b)
+
+    instance serviceAnimate :: Service Animate
+
+    instance serviceCacheFactory :: Service CacheFactory
+
+    instance serviceHttp :: Service Http
+
+    instance serviceInjector :: Service Injector
+
+    instance serviceInterpolate :: Service Interpolate
+
+    instance serviceInterval :: Service Interval
+
+    instance serviceLocation :: Service Location
+
+    instance serviceLog :: Service Log
+
+    instance serviceParse :: Service Parse
+
+    instance serviceQ :: Service Q
+
+    instance serviceRootElement :: Service RootElement
+
+    instance serviceRootScope :: Service (RootScope a)
+
+    instance serviceTimeout :: Service Timeout
+
+
+### Values
+
+    annotate :: forall a. (Injectable a) => a -> Annotated a
+
+    get :: forall e a. (Service a) => Injector -> InjEff e a
+
+
 ## Module Angular.Deferred
 
 ### Types
@@ -605,6 +701,10 @@
 
     finally' :: forall e r a b. Eff e r -> Promise a b -> Promise a b
 
+    pureReject :: forall a b. a -> Promise a b
+
+    pureResolve :: forall a b. b -> Promise a b
+
     then' :: forall a b c d. (b -> Promise c d) -> Promise a b -> Promise c d
 
     then'' :: forall a b c d. (b -> Promise c d) -> (a -> Promise c d) -> Promise a b -> Promise c d
@@ -654,9 +754,9 @@
 ### Types
 
     data ApplyExpr e r a where
-      DefaultApplyExpr :: ApplyExpr e r a
-      StringApplyExpr :: String -> ApplyExpr e r a
-      FnApplyExpr :: Scope a -> Eff e r -> ApplyExpr e r a
+      DefaultApplyExpr :: ApplyExpr
+      StringApplyExpr :: String -> ApplyExpr
+      FnApplyExpr :: (Scope a -> Eff e r) -> ApplyExpr
 
     type Event e a b = { defaultPrevented :: Boolean, preventDefault :: Eff e Unit, stopPropagation :: Eff e Unit, name :: String, currentScope :: Scope b, targetScope :: Scope a }
 
@@ -926,23 +1026,23 @@
     data NgHttp :: !
 
     data RequestData a where
-      NoRequestData :: RequestData a
-      StringRequestData :: String -> RequestData a
-      ObjectRequestData :: a -> RequestData a
+      NoRequestData :: RequestData
+      StringRequestData :: String -> RequestData
+      ObjectRequestData :: a -> RequestData
 
     type RequestDataFn a = { objectRequestData :: a -> RequestData a, stringRequestData :: String -> RequestData a, noRequestData :: RequestData a }
 
     data ResponseData a where
-      NoResponseData :: ResponseData a
-      DefaultResponseData :: String -> ResponseData a
-      ArrayBufferResponseData :: D.ArrayBuffer -> ResponseData a
-      BlobResponseData :: D.Blob -> ResponseData a
-      DocumentResponseData :: D.Document -> ResponseData a
-      JsonResponseData :: a -> ResponseData a
-      TextResponseData :: String -> ResponseData a
-      MozBlobResponseData :: D.MozBlob -> ResponseData a
-      MozChunkedTextResponseData :: D.MozChunkedText -> ResponseData a
-      MozChunkedArrayBufferResponseData :: D.MozChunkedArrayBuffer -> ResponseData a
+      NoResponseData :: ResponseData
+      DefaultResponseData :: String -> ResponseData
+      ArrayBufferResponseData :: D.ArrayBuffer -> ResponseData
+      BlobResponseData :: D.Blob -> ResponseData
+      DocumentResponseData :: D.Document -> ResponseData
+      JsonResponseData :: a -> ResponseData
+      TextResponseData :: String -> ResponseData
+      MozBlobResponseData :: D.MozBlob -> ResponseData
+      MozChunkedTextResponseData :: D.MozChunkedText -> ResponseData
+      MozChunkedArrayBufferResponseData :: D.MozChunkedArrayBuffer -> ResponseData
 
     type ResponseDataFn a = { mozChunkedArrayBufferResponseData :: D.MozChunkedArrayBuffer -> ResponseData a, mozChunkedTextResponseData :: D.MozChunkedText -> ResponseData a, mozBlobResponseData :: D.MozBlob -> ResponseData a, textResponseData :: String -> ResponseData a, jsonResponseData :: a -> ResponseData a, documentResponseData :: D.Document -> ResponseData a, blobResponseData :: D.Blob -> ResponseData a, arrayBufferResponseData :: D.ArrayBuffer -> ResponseData a, defaultResponseData :: String -> ResponseData a, noResponseData :: ResponseData a }
 
@@ -1003,6 +1103,44 @@
     stringHeader :: String -> String -> Header
 
     writeRequestData :: forall a. RequestData a -> ForeignRequestData
+
+
+## Module Angular.Promise.Eff
+
+### Types
+
+    newtype PromiseEff e f a b where
+      PromiseEff :: Promise (Eff e a) (Eff f b) -> PromiseEff
+
+
+### Type Class Instances
+
+    instance applicativePromiseEff :: Applicative (PromiseEff e f a)
+
+    instance applyPromise :: Apply (PromiseEff e f a)
+
+    instance bifunctorPromise :: Bifunctor (PromiseEff e f)
+
+    instance bindPromiseEff :: Bind (PromiseEff e f a)
+
+    instance functorPromiseEff :: Functor (PromiseEff e f a)
+
+
+### Values
+
+    liftPromiseEff :: forall e f a b. Eff e a -> Eff f b -> PromiseEff e f a b
+
+    liftPromiseEff' :: forall e f a b. Eff f b -> PromiseEff e f a b
+
+    promiseEff :: forall e f a b. Promise a b -> PromiseEff e f a b
+
+    promiseEff' :: forall e f a b. Promise a (Eff f b) -> PromiseEff e f a b
+
+    promiseEff'' :: forall e f a b. Promise (Eff e a) b -> PromiseEff e f a b
+
+    runPromiseEff :: forall e f a b. PromiseEff e f a b -> Promise (Eff e a) (Eff f b)
+
+    unsafeRunPromiseEff :: forall e f a b. PromiseEff e f a b -> Promise a b
 
 
 
