@@ -25,7 +25,7 @@
     "purescript-tuples": "0.2.1"
   },
   "devDependencies": {
-    "angular": "1.2.25",
+    "angular": "1.2.26",
     "todomvc-common": "0.1.9",
     "purescript-strings": "0.2.1",
     "purescript-arrays": "0.2.0",
