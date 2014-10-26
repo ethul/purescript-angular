@@ -231,14 +231,14 @@
 
     data Element :: *
 
-    type Handler e = Event -> Eff e Unit
+    type Handler e = DOMEvent -> Eff e Unit
 
     data NgEl :: !
 
 
 ### Values
 
-    (!!) :: Element -> Number -> Maybe Node
+    (!!) :: Element -> Number -> Maybe HTMLElement
 
     addClass :: forall e. String -> Element -> ElEff e Element
 
@@ -886,27 +886,6 @@
     timeout'' :: forall e f r. Eff f r -> Timeout -> TimeoutEff e (TimeoutPromise r)
 
     timeoutk :: forall e f r. Number -> Boolean -> Timeout -> Eff f r -> TimeoutEff e (TimeoutPromise r)
-
-
-## Module DOM.Event
-
-### Types
-
-    type Event  = { keyCode :: Number }
-
-
-## Module DOM.Node
-
-### Types
-
-    data DOM :: !
-
-    data Node :: *
-
-
-### Values
-
-    focus :: forall e. Node -> Eff (dom :: DOM | e) Unit
 
 
 ## Module DOM.Types

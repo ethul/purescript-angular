@@ -4,7 +4,7 @@ import Data.Maybe
 import Control.Monad (when)
 import Control.Monad.Eff
 
-import qualified DOM.Node as D
+import qualified Data.DOM.Simple.Element as D
 
 import Angular.Attributes (get)
 import Angular.Element ((!!))

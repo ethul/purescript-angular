@@ -62,15 +62,14 @@ import Control.Monad.Eff
 import Data.Function (Fn3(), Fn4(), Fn5(), runFn3, runFn4, runFn5)
 import Data.Maybe
 
-import DOM.Event (Event())
-import DOM.Node (Node())
+import Data.DOM.Simple.Types (HTMLElement(), DOMEvent())
 
 import Angular.Injector (Injector())
 import Angular.Scope (Scope())
 
 type ElEff e r = Eff (ngel :: NgEl | e) r
 
-type Handler e = Event -> Eff e Unit
+type Handler e = DOMEvent -> Eff e Unit
 
 foreign import data Element :: *
 
@@ -612,9 +611,9 @@ foreign import bangbangFn
   \   var r = el[i]; \
   \   return angular.isDefined(r) ? just(r) : nothing; \
   \ }"
-  :: Fn4 (Maybe Node) (Node -> Maybe Node) Element Number (Maybe Node)
+  :: Fn4 (Maybe HTMLElement) (HTMLElement -> Maybe HTMLElement) Element Number (Maybe HTMLElement)
 
 infixl 8 !!
 
-(!!) :: Element -> Number -> Maybe Node
+(!!) :: Element -> Number -> Maybe HTMLElement
 (!!) = runFn4 bangbangFn Nothing Just
