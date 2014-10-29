@@ -38,21 +38,21 @@ instance applicativePromiseEff :: Applicative (PromiseEff e f a) where
 instance bindPromiseEff :: Bind (PromiseEff e f a) where
   (>>=) = flip $ runFn2 thenEffFn
 
-instance bifunctorPromise :: Bifunctor (PromiseEff e f) where
-  bimap f g = runFn3 thenEffFn' (PromiseEff <<< pureResolve <<< pure <<< g)
-                                (PromiseEff <<< pureReject <<< pure <<< f)
+instance bifunctorPromiseEff :: Bifunctor (PromiseEff e f) where
+  bimap f g = runFn3 thenPureEffFn' (pure <<< g)
+                                    (pure <<< f)
 
 promiseEff :: forall e f a b. Promise a b -> PromiseEff e f a b
-promiseEff = PromiseEff <<< then'' (pureResolve <<< returnE) (pureReject <<< returnE)
+promiseEff = PromiseEff <<< thenPure'' returnE returnE
 
 promiseEff' :: forall e f a b. Promise a (Eff f b) -> PromiseEff e f a b
-promiseEff' = PromiseEff <<< then'' (pureResolve <<< id) (pureReject <<< returnE)
+promiseEff' = PromiseEff <<< thenPure'' id returnE
 
 promiseEff'' :: forall e f a b. Promise (Eff e a) b -> PromiseEff e f a b
-promiseEff'' = PromiseEff <<< then'' (pureResolve <<< returnE) (pureReject <<< id)
+promiseEff'' = PromiseEff <<< thenPure'' returnE id
 
 liftPromiseEff :: forall e f a b. Eff e a -> Eff f b -> PromiseEff e f a b
-liftPromiseEff e f = PromiseEff $ then'' (pureResolve <<< id) (\_ -> pureReject e) (pureResolve f)
+liftPromiseEff e f = PromiseEff $ thenPure'' id (\_ -> e) (pureResolve f)
 
 liftPromiseEff' :: forall e f a b. Eff f b -> PromiseEff e f a b
 liftPromiseEff' = promiseEff' <<< return
@@ -67,13 +67,13 @@ foreign import thenEffFn
                            (PromiseEff e f a b)
                            (PromiseEff e f a c)
 
-foreign import thenEffFn'
-  " function thenEffFn$prime(fa, k, i){ \
+foreign import thenPureEffFn'
+  " function thenPureEffFn$prime(fa, k, i){ \
   \   return fa.then(function(eff){return k(eff());}, \
   \                  function(eff){return i(eff());}); \
   \ } "
-  :: forall e f a b c d. Fn3 (b -> PromiseEff e f c d)
-                             (a -> PromiseEff e f c d)
+  :: forall e f a b c d. Fn3 (b -> Eff f d)
+                             (a -> Eff e c)
                              (PromiseEff e f a b)
                              (PromiseEff e f c d)
 
