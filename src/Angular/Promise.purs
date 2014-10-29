@@ -58,7 +58,7 @@ foreign import thenFn'
   \ } "
   :: forall a b c d. Fn2 (b -> Promise c d) (Promise a b) (Promise c d)
 
-then' :: forall a b c d. (b -> Promise c d) -> Promise a b -> Promise c d
+then' :: forall a b c. (b -> Promise a c) -> Promise a b -> Promise a c
 then' = runFn2 thenFn'
 
 foreign import thenFn''

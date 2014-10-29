@@ -707,7 +707,7 @@
 
     pureResolve :: forall a b. b -> Promise a b
 
-    then' :: forall a b c d. (b -> Promise c d) -> Promise a b -> Promise c d
+    then' :: forall a b c. (b -> Promise a c) -> Promise a b -> Promise a c
 
     then'' :: forall a b c d. (b -> Promise c d) -> (a -> Promise c d) -> Promise a b -> Promise c d
 
