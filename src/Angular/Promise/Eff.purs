@@ -38,8 +38,7 @@ instance bindPromiseEff :: Bind (PromiseEff e f a) where
   (>>=) = flip $ runFn2 thenEffFn
 
 instance bifunctorPromiseEff :: Bifunctor (PromiseEff e f) where
-  bimap f g = runFn3 thenPureEffFn' (pure <<< g)
-                                    (pure <<< f)
+  bimap f g = PromiseEff <<< bimap ((<$>) f) ((<$>) g) <<< runPromiseEff
 
 promiseEff :: forall e f a b. Promise a b -> PromiseEff e f a b
 promiseEff = PromiseEff <<< thenPure'' returnE returnE
@@ -62,16 +61,6 @@ foreign import thenEffFn
   :: forall e f a b c. Fn2 (b -> PromiseEff e f a c)
                            (PromiseEff e f a b)
                            (PromiseEff e f a c)
-
-foreign import thenPureEffFn'
-  " function thenPureEffFn$prime(fa, k, i){ \
-  \   return fa.then(function(eff){return k(eff());}, \
-  \                  function(eff){return i(eff());}); \
-  \ } "
-  :: forall e f a b c d. Fn3 (b -> Eff f d)
-                             (a -> Eff e c)
-                             (PromiseEff e f a b)
-                             (PromiseEff e f c d)
 
 foreign import unsafeRunPromiseEff'
   " function unsafeRunPromiseEff$prime(p) { \
