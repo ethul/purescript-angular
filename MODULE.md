@@ -1132,9 +1132,7 @@
 
 ### Values
 
-    liftPromiseEff :: forall e f a b. Eff e a -> Eff f b -> PromiseEff e f a b
-
-    liftPromiseEff' :: forall e f a b. Eff f b -> PromiseEff e f a b
+    liftPromiseEff :: forall e f a b. Eff f b -> PromiseEff e f a b
 
     promiseEff :: forall e f a b. Promise a b -> PromiseEff e f a b
 

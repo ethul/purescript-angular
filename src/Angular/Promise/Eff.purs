@@ -6,7 +6,6 @@ module Angular.Promise.Eff
   , promiseEff'
   , promiseEff''
   , liftPromiseEff
-  , liftPromiseEff'
   ) where
 
 import Control.Monad.Eff
@@ -51,11 +50,8 @@ promiseEff' = PromiseEff <<< thenPure'' id returnE
 promiseEff'' :: forall e f a b. Promise (Eff e a) b -> PromiseEff e f a b
 promiseEff'' = PromiseEff <<< thenPure'' returnE id
 
-liftPromiseEff :: forall e f a b. Eff e a -> Eff f b -> PromiseEff e f a b
-liftPromiseEff e f = PromiseEff $ thenPure'' id (\_ -> e) (pureResolve f)
-
-liftPromiseEff' :: forall e f a b. Eff f b -> PromiseEff e f a b
-liftPromiseEff' = promiseEff' <<< return
+liftPromiseEff :: forall e f a b. Eff f b -> PromiseEff e f a b
+liftPromiseEff = promiseEff' <<< return
 
 foreign import thenEffFn
   " function thenEffFn(k, fa){ \
