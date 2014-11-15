@@ -1,10 +1,12 @@
 module Angular.DI (
     Dependency
+  , name
   , Service
   , RootScope(..)
   , RootElement(..)
   , get
   , Injectable
+  , dependencies
   , Annotated()
   , annotate
   ) where

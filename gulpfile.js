@@ -16,7 +16,7 @@ var gulp = require('gulp')
           todomvc: 'examples/Todomvc/**/*.purs'
         },
         dest: 'dist',
-        docgen: 'MODULE.md',
+        docs: 'MODULE.md',
         options: {
           main: 'Todomvc.Main',
           output: 'todomvc.js'
@@ -81,13 +81,13 @@ gulp.task('psci', function(){
   );
 });
 
-gulp.task('docgen', function(){
+gulp.task('docs', function(){
   return (
     gulp.src(config.purescript.src[1]).
     pipe(plumber()).
-    pipe(purescript.docgen()).
+    pipe(purescript.pscDocs()).
     on('error', error).
-    pipe(gulp.dest(config.purescript.docgen))
+    pipe(gulp.dest(config.purescript.docs))
   );
 });
 
@@ -100,4 +100,4 @@ gulp.task('watch.todomvc', function(cb){
   server(cb);
 });
 
-gulp.task('default', ['clean', 'make', 'docgen', 'psci']);
+gulp.task('default', ['clean', 'make', 'docs', 'psci']);

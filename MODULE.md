@@ -75,9 +75,9 @@
 
     data CacheFactory :: *
 
-    type Key  = String
+    type Key = String
 
-    type Name  = String
+    type Name = String
 
     data NgCache :: !
 
@@ -111,7 +111,7 @@
       RootElement :: Element -> RootElement
 
     newtype RootScope a where
-      RootScope :: Scope a -> RootScope
+      RootScope :: Scope a -> RootScope a
 
 
 ### Type Classes
@@ -121,6 +121,8 @@
 
     class Injectable a where
       dependencies :: a -> [String]
+
+    class (Dependency a) <= Service a where
 
 
 ### Type Class Instances
@@ -471,7 +473,7 @@
 
     type IntervalEff e r = Eff (nginterval :: NgInterval | e) r
 
-    type IntervalPromise  = Promise Unit Number
+    type IntervalPromise = Promise Unit Number
 
     data NgInterval :: !
 
@@ -593,7 +595,7 @@
 
     type Parser a = String -> Maybe a
 
-    type ValidationErrorKey  = String
+    type ValidationErrorKey = String
 
 
 ### Values
@@ -645,7 +647,7 @@
 
 ### Types
 
-    type Expression  = String
+    type Expression = String
 
     data Getter :: * -> *
 
@@ -754,9 +756,9 @@
 ### Types
 
     data ApplyExpr e r a where
-      DefaultApplyExpr :: ApplyExpr
-      StringApplyExpr :: String -> ApplyExpr
-      FnApplyExpr :: (Scope a -> Eff e r) -> ApplyExpr
+      DefaultApplyExpr :: ApplyExpr e r a
+      StringApplyExpr :: String -> ApplyExpr e r a
+      FnApplyExpr :: (Scope a -> Eff e r) -> ApplyExpr e r a
 
     type Event e a b = { defaultPrevented :: Boolean, preventDefault :: Eff e Unit, stopPropagation :: Eff e Unit, name :: String, currentScope :: Scope b, targetScope :: Scope a }
 
@@ -890,7 +892,7 @@
 
 ### Types
 
-    type Event  = { keyCode :: Number }
+    type Event = { keyCode :: Number }
 
 
 ## Module DOM.Node
@@ -1006,7 +1008,7 @@
 
     data ForeignTimeout :: *
 
-    type Header  = Tuple String (Either String (Unit -> String))
+    type Header = Tuple String (Either String (Unit -> String))
 
     newtype Headers where
       Headers :: [Header] -> Headers
@@ -1026,23 +1028,23 @@
     data NgHttp :: !
 
     data RequestData a where
-      NoRequestData :: RequestData
-      StringRequestData :: String -> RequestData
-      ObjectRequestData :: a -> RequestData
+      NoRequestData :: RequestData a
+      StringRequestData :: String -> RequestData a
+      ObjectRequestData :: a -> RequestData a
 
     type RequestDataFn a = { objectRequestData :: a -> RequestData a, stringRequestData :: String -> RequestData a, noRequestData :: RequestData a }
 
     data ResponseData a where
-      NoResponseData :: ResponseData
-      DefaultResponseData :: String -> ResponseData
-      ArrayBufferResponseData :: D.ArrayBuffer -> ResponseData
-      BlobResponseData :: D.Blob -> ResponseData
-      DocumentResponseData :: D.Document -> ResponseData
-      JsonResponseData :: a -> ResponseData
-      TextResponseData :: String -> ResponseData
-      MozBlobResponseData :: D.MozBlob -> ResponseData
-      MozChunkedTextResponseData :: D.MozChunkedText -> ResponseData
-      MozChunkedArrayBufferResponseData :: D.MozChunkedArrayBuffer -> ResponseData
+      NoResponseData :: ResponseData a
+      DefaultResponseData :: String -> ResponseData a
+      ArrayBufferResponseData :: D.ArrayBuffer -> ResponseData a
+      BlobResponseData :: D.Blob -> ResponseData a
+      DocumentResponseData :: D.Document -> ResponseData a
+      JsonResponseData :: a -> ResponseData a
+      TextResponseData :: String -> ResponseData a
+      MozBlobResponseData :: D.MozBlob -> ResponseData a
+      MozChunkedTextResponseData :: D.MozChunkedText -> ResponseData a
+      MozChunkedArrayBufferResponseData :: D.MozChunkedArrayBuffer -> ResponseData a
 
     type ResponseDataFn a = { mozChunkedArrayBufferResponseData :: D.MozChunkedArrayBuffer -> ResponseData a, mozChunkedTextResponseData :: D.MozChunkedText -> ResponseData a, mozBlobResponseData :: D.MozBlob -> ResponseData a, textResponseData :: String -> ResponseData a, jsonResponseData :: a -> ResponseData a, documentResponseData :: D.Document -> ResponseData a, blobResponseData :: D.Blob -> ResponseData a, arrayBufferResponseData :: D.ArrayBuffer -> ResponseData a, defaultResponseData :: String -> ResponseData a, noResponseData :: ResponseData a }
 
@@ -1068,7 +1070,7 @@
       InternalServerError :: Status
       OtherStatus :: Number -> Status
 
-    type Url  = String
+    type Url = String
 
 
 ### Type Class Instances
@@ -1110,7 +1112,7 @@
 ### Types
 
     newtype PromiseEff e f a b where
-      PromiseEff :: Promise (Eff e a) (Eff f b) -> PromiseEff
+      PromiseEff :: Promise (Eff e a) (Eff f b) -> PromiseEff e f a b
 
 
 ### Type Class Instances
