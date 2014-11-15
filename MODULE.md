@@ -231,14 +231,14 @@
 
     data Element :: *
 
-    type Handler e = Event -> Eff e Unit
+    type Handler e = DOMEvent -> Eff e Unit
 
     data NgEl :: !
 
 
 ### Values
 
-    (!!) :: Element -> Number -> Maybe Node
+    (!!) :: Element -> Number -> Maybe HTMLElement
 
     addClass :: forall e. String -> Element -> ElEff e Element
 
@@ -377,44 +377,44 @@
 
 ### Types
 
-    type Config a b c d = { responseType :: ResponseType, withCredentials :: Boolean, timeout :: Either Number (Promise c d), cache :: Either Boolean Cache, xsrfCookieName :: String, xsrfHeaderName :: String, headers :: Headers, "data" :: RequestData b, params :: {  | a }, url :: Url, method :: Method }
+    type Config a b c d = { responseType :: D.ResponseType, withCredentials :: Boolean, timeout :: Either Number (Promise c d), cache :: Either Boolean Cache, xsrfCookieName :: String, xsrfHeaderName :: String, headers :: Headers, "data" :: RequestData b, params :: {  | a }, url :: D.Url, method :: D.HttpMethod }
 
     data Http :: *
 
     type HttpResponse e r a b c d = HttpEff e (Promise (Response r a b c d) (Response r a b c d))
 
-    type Response r a b c d = { statusText :: String, config :: Config a b c d, headers :: [String] -> String, status :: Status, "data" :: ResponseData r }
+    type Response r a b c d = { statusText :: String, config :: Config a b c d, headers :: [String] -> String, status :: Status, "data" :: D.HttpData r }
 
 
 ### Values
 
     config :: forall a b c d. Config a b c d
 
-    del :: forall e r a b c d. Url -> Http -> HttpResponse e r a b c d
+    del :: forall e r a b c d. D.Url -> Http -> HttpResponse e r a b c d
 
-    del' :: forall e r a b c d. Url -> Config a b c d -> Http -> HttpResponse e r a b c d
+    del' :: forall e r a b c d. D.Url -> Config a b c d -> Http -> HttpResponse e r a b c d
 
-    get :: forall e r a b c d. Url -> Http -> HttpResponse e r a b c d
+    get :: forall e r a b c d. D.Url -> Http -> HttpResponse e r a b c d
 
-    get' :: forall e r a b c d. Url -> Config a b c d -> Http -> HttpResponse e r a b c d
+    get' :: forall e r a b c d. D.Url -> Config a b c d -> Http -> HttpResponse e r a b c d
 
-    head :: forall e r a b c d. Url -> Http -> HttpResponse e r a b c d
+    head :: forall e r a b c d. D.Url -> Http -> HttpResponse e r a b c d
 
-    head' :: forall e r a b c d. Url -> Config a b c d -> Http -> HttpResponse e r a b c d
+    head' :: forall e r a b c d. D.Url -> Config a b c d -> Http -> HttpResponse e r a b c d
 
     http :: forall e r a b c d. Config a b c d -> Http -> HttpResponse e r a b c d
 
-    jsonp :: forall e r a b c d. Url -> Http -> HttpResponse e r a b c d
+    jsonp :: forall e r a b c d. D.Url -> Http -> HttpResponse e r a b c d
 
-    jsonp' :: forall e r a b c d. Url -> Config a b c d -> Http -> HttpResponse e r a b c d
+    jsonp' :: forall e r a b c d. D.Url -> Config a b c d -> Http -> HttpResponse e r a b c d
 
-    post :: forall e r a b c d. Url -> RequestData b -> Http -> HttpResponse e r a b c d
+    post :: forall e r a b c d. D.Url -> RequestData b -> Http -> HttpResponse e r a b c d
 
-    post' :: forall e r a b c d. Url -> RequestData b -> Config a b c d -> Http -> HttpResponse e r a b c d
+    post' :: forall e r a b c d. D.Url -> RequestData b -> Config a b c d -> Http -> HttpResponse e r a b c d
 
-    put :: forall e r a b c d. Url -> RequestData b -> Http -> HttpResponse e r a b c d
+    put :: forall e r a b c d. D.Url -> RequestData b -> Http -> HttpResponse e r a b c d
 
-    put' :: forall e r a b c d. Url -> RequestData b -> Config a b c d -> Http -> HttpResponse e r a b c d
+    put' :: forall e r a b c d. D.Url -> RequestData b -> Config a b c d -> Http -> HttpResponse e r a b c d
 
 
 ## Module Angular.Injector
@@ -707,7 +707,7 @@
 
     pureResolve :: forall a b. b -> Promise a b
 
-    then' :: forall a b c d. (b -> Promise c d) -> Promise a b -> Promise c d
+    then' :: forall a b c. (b -> Promise a c) -> Promise a b -> Promise a c
 
     then'' :: forall a b c d. (b -> Promise c d) -> (a -> Promise c d) -> Promise a b -> Promise c d
 
@@ -813,7 +813,7 @@
 
     id :: forall a. Scope a -> String
 
-    modifyScope :: forall e f a b. ({  | a } -> Eff f {  | b }) -> Scope a -> ReadWriteEff e Unit
+    modifyScope :: forall e a b. ({  | a } -> Eff e {  | b }) -> Scope a -> ReadWriteEff e Unit
 
     newScope :: forall e a b. Boolean -> Scope a -> ScopeEff e (Scope b)
 
@@ -855,7 +855,7 @@
 
     extendThis :: forall e a b. {  | b } -> This a -> WriteEff e
 
-    modifyThis :: forall e f a b. ({  | a } -> Eff f {  | b }) -> This a -> ReadWriteEff e Unit
+    modifyThis :: forall e a b. ({  | a } -> Eff e {  | b }) -> This a -> ReadWriteEff e Unit
 
     readThis :: forall e a. This a -> ReadEff e a
 
@@ -888,44 +888,6 @@
     timeoutk :: forall e f r. Number -> Boolean -> Timeout -> Eff f r -> TimeoutEff e (TimeoutPromise r)
 
 
-## Module DOM.Event
-
-### Types
-
-    type Event = { keyCode :: Number }
-
-
-## Module DOM.Node
-
-### Types
-
-    data DOM :: !
-
-    data Node :: *
-
-
-### Values
-
-    focus :: forall e. Node -> Eff (dom :: DOM | e) Unit
-
-
-## Module DOM.Types
-
-### Types
-
-    data ArrayBuffer :: *
-
-    data Blob :: *
-
-    data Document :: *
-
-    data MozBlob :: *
-
-    data MozChunkedArrayBuffer :: *
-
-    data MozChunkedText :: *
-
-
 ## Module Angular.Http.Internal
 
 ### Types
@@ -943,17 +905,17 @@
 
     getConfigHeaders :: ForeignConfig -> Headers
 
-    getConfigMethod :: ForeignConfig -> Method
+    getConfigMethod :: ForeignConfig -> D.HttpMethod
 
     getConfigParams :: forall a. ForeignConfig -> {  | a }
 
     getConfigRequestData :: forall e a. ForeignConfig -> RequestData a
 
-    getConfigResponseType :: ForeignConfig -> ResponseType
+    getConfigResponseType :: ForeignConfig -> D.ResponseType
 
     getConfigTimeout :: forall a b. ForeignConfig -> Either Number (Promise a b)
 
-    getConfigUrl :: ForeignConfig -> Url
+    getConfigUrl :: ForeignConfig -> D.Url
 
     getConfigWithCredentials :: ForeignConfig -> Boolean
 
@@ -963,7 +925,7 @@
 
     getResponseConfig :: ForeignResponse -> ForeignConfig
 
-    getResponseData :: forall a. ResponseType -> ForeignResponse -> ResponseData a
+    getResponseData :: forall a. D.ResponseType -> ForeignResponse -> D.HttpData a
 
     getResponseHeaders :: ForeignResponse -> [String] -> String
 
@@ -975,17 +937,17 @@
 
     setConfigHeaders :: forall e. Headers -> ForeignConfig -> HttpEff e Unit
 
-    setConfigMethod :: forall e. Method -> ForeignConfig -> HttpEff e Unit
+    setConfigMethod :: forall e. D.HttpMethod -> ForeignConfig -> HttpEff e Unit
 
     setConfigParams :: forall e a. {  | a } -> ForeignConfig -> HttpEff e Unit
 
     setConfigRequestData :: forall e a. RequestData a -> ForeignConfig -> HttpEff e Unit
 
-    setConfigResponseType :: forall e. ResponseType -> ForeignConfig -> HttpEff e Unit
+    setConfigResponseType :: forall e. D.ResponseType -> ForeignConfig -> HttpEff e Unit
 
     setConfigTimeout :: forall e a b. Either Number (Promise a b) -> ForeignConfig -> HttpEff e Unit
 
-    setConfigUrl :: forall e. Url -> ForeignConfig -> HttpEff e Unit
+    setConfigUrl :: forall e. D.Url -> ForeignConfig -> HttpEff e Unit
 
     setConfigWithCredentials :: forall e. Boolean -> ForeignConfig -> HttpEff e Unit
 
@@ -1015,16 +977,6 @@
 
     type HttpEff e r = Eff (nghttp :: NgHttp | e) r
 
-    data Method where
-      GET :: Method
-      POST :: Method
-      PUT :: Method
-      DELETE :: Method
-      PATCH :: Method
-      HEAD :: Method
-      OPTIONS :: Method
-      JSONP :: Method
-
     data NgHttp :: !
 
     data RequestData a where
@@ -1033,31 +985,6 @@
       ObjectRequestData :: a -> RequestData a
 
     type RequestDataFn a = { objectRequestData :: a -> RequestData a, stringRequestData :: String -> RequestData a, noRequestData :: RequestData a }
-
-    data ResponseData a where
-      NoResponseData :: ResponseData a
-      DefaultResponseData :: String -> ResponseData a
-      ArrayBufferResponseData :: D.ArrayBuffer -> ResponseData a
-      BlobResponseData :: D.Blob -> ResponseData a
-      DocumentResponseData :: D.Document -> ResponseData a
-      JsonResponseData :: a -> ResponseData a
-      TextResponseData :: String -> ResponseData a
-      MozBlobResponseData :: D.MozBlob -> ResponseData a
-      MozChunkedTextResponseData :: D.MozChunkedText -> ResponseData a
-      MozChunkedArrayBufferResponseData :: D.MozChunkedArrayBuffer -> ResponseData a
-
-    type ResponseDataFn a = { mozChunkedArrayBufferResponseData :: D.MozChunkedArrayBuffer -> ResponseData a, mozChunkedTextResponseData :: D.MozChunkedText -> ResponseData a, mozBlobResponseData :: D.MozBlob -> ResponseData a, textResponseData :: String -> ResponseData a, jsonResponseData :: a -> ResponseData a, documentResponseData :: D.Document -> ResponseData a, blobResponseData :: D.Blob -> ResponseData a, arrayBufferResponseData :: D.ArrayBuffer -> ResponseData a, defaultResponseData :: String -> ResponseData a, noResponseData :: ResponseData a }
-
-    data ResponseType where
-      Default :: ResponseType
-      ArrayBuffer :: ResponseType
-      Blob :: ResponseType
-      Document :: ResponseType
-      Json :: ResponseType
-      Text :: ResponseType
-      MozBlob :: ResponseType
-      MozChunkedText :: ResponseType
-      MozChunkedArrayBuffer :: ResponseType
 
     data Status where
       OK :: Status
@@ -1070,15 +997,6 @@
       InternalServerError :: Status
       OtherStatus :: Number -> Status
 
-    type Url = String
-
-
-### Type Class Instances
-
-    instance showMethod :: Show Method
-
-    instance showResponseType :: Show ResponseType
-
 
 ### Values
 
@@ -1090,13 +1008,13 @@
 
     readHeadersFn :: forall a b. Fn4 (String -> Either String (Unit -> String)) ((Unit -> String) -> Either String (Unit -> String)) (String -> Either String (Unit -> String) -> Header) ForeignHeaders Headers
 
-    readMethod :: String -> Method
+    readMethod :: String -> D.HttpMethod
 
     readRequestDataFn :: forall a. Fn2 (RequestDataFn a) ForeignRequestData (RequestData a)
 
-    readResponseDataFn :: forall a. Fn3 (ResponseDataFn a) String ForeignResponseData (ResponseData a)
+    readResponseData :: forall a d. (d -> D.HttpData a) -> ForeignResponseData -> D.HttpData a
 
-    readResponseType :: String -> ResponseType
+    readResponseType :: String -> D.ResponseType
 
     readStatus :: Number -> Status
 

@@ -33,7 +33,7 @@ writeThis = runFn3 writeThisFn
 extendThis :: forall e a b. { | b } -> This a -> WriteEff e
 extendThis = runFn2 extendThisFn
 
-modifyThis :: forall e f a b. ({ | a } -> Eff f { | b }) -> This a -> ReadWriteEff e Unit
+modifyThis :: forall e a b. ({ | a } -> Eff e { | b }) -> This a -> ReadWriteEff e Unit
 modifyThis k t = do
   t' <- readThis t
   w <- unsafeInterleaveEff $ k t'

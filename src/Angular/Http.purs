@@ -25,6 +25,8 @@ import Data.Function
 import Data.Maybe
 import Data.Tuple
 
+import qualified Data.DOM.Simple.Ajax as D
+
 import Angular.Cache (Cache())
 import qualified Angular.Http.Internal as I
 import Angular.Http.Types
@@ -37,7 +39,7 @@ type HttpResponse e r a b c d = HttpEff e (Promise (Response r a b c d) (Respons
 type ForeignHttpResponse e = HttpEff e (Promise I.ForeignResponse I.ForeignResponse)
 
 type Response r a b c d
-  = { "data" :: ResponseData r
+  = { "data" :: D.HttpData r
     , status :: Status
     , headers :: [String] -> String
     , config :: Config a b c d
@@ -45,8 +47,8 @@ type Response r a b c d
     }
 
 type Config a b c d
-  = { method :: Method
-    , url :: Url
+  = { method :: D.HttpMethod
+    , url :: D.Url
     , params :: { | a }
     , "data" :: RequestData b
     , headers :: Headers
@@ -55,7 +57,7 @@ type Config a b c d
     , cache :: Either Boolean Cache
     , timeout ::  Either Number (Promise c d)
     , withCredentials :: Boolean
-    , responseType :: ResponseType
+    , responseType :: D.ResponseType
     }
 
 xsrfHeaderName = "X-XSRF-TOKEN"
@@ -63,7 +65,7 @@ xsrfHeaderName = "X-XSRF-TOKEN"
 xsrfCookieName = "XSRF-TOKEN"
 
 config :: forall a b c d. Config a b c d
-config = { method: GET
+config = { method: D.GET
          , url: "/"
          , params: runFn0 emptyParams
          , "data": NoRequestData
@@ -73,54 +75,54 @@ config = { method: GET
          , cache: Left false
          , timeout: Left 0
          , withCredentials: false
-         , responseType: Default }
+         , responseType: D.Default }
 
 http :: forall e r a b c d. Config a b c d -> Http -> HttpResponse e r a b c d
 http c h = (bimap foreignResponse foreignResponse) <$> (foreignConfig c >>= runFn2 httpFn h)
 
-get :: forall e r a b c d. Url -> Http -> HttpResponse e r a b c d
-get u = runHttpFn' GET u config
+get :: forall e r a b c d. D.Url -> Http -> HttpResponse e r a b c d
+get u = runHttpFn' D.GET u config
 
-get' :: forall e r a b c d. Url -> Config a b c d -> Http -> HttpResponse e r a b c d
-get' = runHttpFn' GET
+get' :: forall e r a b c d. D.Url -> Config a b c d -> Http -> HttpResponse e r a b c d
+get' = runHttpFn' D.GET
 
-del :: forall e r a b c d. Url -> Http -> HttpResponse e r a b c d
-del u = runHttpFn' DELETE u config
+del :: forall e r a b c d. D.Url -> Http -> HttpResponse e r a b c d
+del u = runHttpFn' D.DELETE u config
 
-del' :: forall e r a b c d. Url -> Config a b c d -> Http -> HttpResponse e r a b c d
-del' = runHttpFn' DELETE
+del' :: forall e r a b c d. D.Url -> Config a b c d -> Http -> HttpResponse e r a b c d
+del' = runHttpFn' D.DELETE
 
-head :: forall e r a b c d. Url -> Http -> HttpResponse e r a b c d
-head u = runHttpFn' HEAD u config
+head :: forall e r a b c d. D.Url -> Http -> HttpResponse e r a b c d
+head u = runHttpFn' D.HEAD u config
 
-head' :: forall e r a b c d. Url -> Config a b c d -> Http -> HttpResponse e r a b c d
-head' = runHttpFn' HEAD
+head' :: forall e r a b c d. D.Url -> Config a b c d -> Http -> HttpResponse e r a b c d
+head' = runHttpFn' D.HEAD
 
-jsonp :: forall e r a b c d. Url -> Http -> HttpResponse e r a b c d
-jsonp u = runHttpFn' JSONP u config
+jsonp :: forall e r a b c d. D.Url -> Http -> HttpResponse e r a b c d
+jsonp u = runHttpFn' D.JSONP u config
 
-jsonp' :: forall e r a b c d. Url -> Config a b c d -> Http -> HttpResponse e r a b c d
-jsonp' = runHttpFn' JSONP
+jsonp' :: forall e r a b c d. D.Url -> Config a b c d -> Http -> HttpResponse e r a b c d
+jsonp' = runHttpFn' D.JSONP
 
-post :: forall e r a b c d. Url -> RequestData b -> Http -> HttpResponse e r a b c d
-post u d = runHttpFn'' POST u d config
+post :: forall e r a b c d. D.Url -> RequestData b -> Http -> HttpResponse e r a b c d
+post u d = runHttpFn'' D.POST u d config
 
-post' :: forall e r a b c d. Url -> RequestData b -> Config a b c d -> Http -> HttpResponse e r a b c d
-post' = runHttpFn'' POST
+post' :: forall e r a b c d. D.Url -> RequestData b -> Config a b c d -> Http -> HttpResponse e r a b c d
+post' = runHttpFn'' D.POST
 
-put :: forall e r a b c d. Url -> RequestData b -> Http -> HttpResponse e r a b c d
-put u d = runHttpFn'' PUT u d config
+put :: forall e r a b c d. D.Url -> RequestData b -> Http -> HttpResponse e r a b c d
+put u d = runHttpFn'' D.PUT u d config
 
-put' :: forall e r a b c d. Url -> RequestData b -> Config a b c d -> Http -> HttpResponse e r a b c d
-put' = runHttpFn'' PUT
+put' :: forall e r a b c d. D.Url -> RequestData b -> Config a b c d -> Http -> HttpResponse e r a b c d
+put' = runHttpFn'' D.PUT
 
-runHttpFn' :: forall e r a b c d. Method -> Url -> Config a b c d -> Http -> HttpResponse e r a b c d
+runHttpFn' :: forall e r a b c d. D.HttpMethod -> D.Url -> Config a b c d -> Http -> HttpResponse e r a b c d
 runHttpFn' m u c h = do
   conf <- foreignConfig c
   res <- runFn4 httpFn' (show m) u conf h
   return $ bimap foreignResponse foreignResponse res
 
-runHttpFn'' :: forall e r a b c d. Method -> Url -> RequestData b -> Config a b c d -> Http -> HttpResponse e r a b c d
+runHttpFn'' :: forall e r a b c d. D.HttpMethod -> D.Url -> RequestData b -> Config a b c d -> Http -> HttpResponse e r a b c d
 runHttpFn'' m u d c h = do
   conf <- foreignConfig c
   res <- runFn5 httpFn'' (show m) u (writeRequestData d) conf h
@@ -178,7 +180,7 @@ foreign import httpFn'
   \   } \
   \ } "
   :: forall e. Fn4 String
-                   Url
+                   D.Url
                    I.ForeignConfig
                    Http
                    (ForeignHttpResponse e)
@@ -190,7 +192,7 @@ foreign import httpFn''
   \   } \
   \ } "
   :: forall e. Fn5 String
-                   Url
+                   D.Url
                    ForeignRequestData
                    I.ForeignConfig
                    Http

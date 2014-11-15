@@ -37,6 +37,8 @@ import Data.Foldable (for_)
 import Data.Function
 import Data.Tuple
 
+import qualified Data.DOM.Simple.Ajax as D
+
 import Angular.Cache
 import Angular.Http.Types
 import Angular.Promise (Promise())
@@ -45,16 +47,16 @@ foreign import data ForeignConfig :: *
 
 foreign import data ForeignResponse :: *
 
-setConfigMethod :: forall e. Method -> ForeignConfig -> HttpEff e Unit
+setConfigMethod :: forall e. D.HttpMethod -> ForeignConfig -> HttpEff e Unit
 setConfigMethod m = runFn3 setConfigPropFn "method" (show m)
 
-getConfigMethod:: ForeignConfig -> Method
+getConfigMethod:: ForeignConfig -> D.HttpMethod
 getConfigMethod c = readMethod $ runFn2 getConfigPropFn "method" c
 
-setConfigUrl :: forall e. Url -> ForeignConfig -> HttpEff e Unit
+setConfigUrl :: forall e. D.Url -> ForeignConfig -> HttpEff e Unit
 setConfigUrl = runFn3 setConfigPropFn "url"
 
-getConfigUrl :: ForeignConfig -> Url
+getConfigUrl :: ForeignConfig -> D.Url
 getConfigUrl = runFn2 getConfigPropFn "url"
 
 setConfigParams :: forall e a. { | a } -> ForeignConfig -> HttpEff e Unit
@@ -115,24 +117,23 @@ setConfigWithCredentials = runFn3 setConfigPropFn "withCredentials"
 getConfigWithCredentials :: ForeignConfig -> Boolean
 getConfigWithCredentials = runFn2 getConfigPropFn "withCredentials"
 
-setConfigResponseType :: forall e. ResponseType -> ForeignConfig -> HttpEff e Unit
+setConfigResponseType :: forall e. D.ResponseType -> ForeignConfig -> HttpEff e Unit
 setConfigResponseType r = runFn3 setConfigPropFn "responseType" (show r)
 
-getConfigResponseType :: ForeignConfig -> ResponseType
+getConfigResponseType :: ForeignConfig -> D.ResponseType
 getConfigResponseType c = readResponseType $ runFn2 getConfigPropFn "responseType" c
 
-getResponseData :: forall a. ResponseType -> ForeignResponse -> ResponseData a
-getResponseData t r = runFn3 readResponseDataFn { noResponseData: NoResponseData
-                                                , defaultResponseData: DefaultResponseData
-                                                , arrayBufferResponseData: ArrayBufferResponseData
-                                                , blobResponseData: BlobResponseData
-                                                , documentResponseData: DocumentResponseData
-                                                , jsonResponseData: JsonResponseData
-                                                , textResponseData: TextResponseData
-                                                , mozBlobResponseData: MozBlobResponseData
-                                                , mozChunkedTextResponseData: MozChunkedTextResponseData
-                                                , mozChunkedArrayBufferResponseData: MozChunkedArrayBufferResponseData
-                                                } (show t) $ runFn2 getResponsePropFn "data" r
+getResponseData :: forall a. D.ResponseType -> ForeignResponse -> D.HttpData a
+getResponseData t = get t <<< runFn2 getResponsePropFn "data" where
+  get D.Default = readResponseData D.TextData
+  get D.ArrayBuffer = readResponseData D.ArrayBufferData
+  get D.Blob = readResponseData D.BlobData
+  get D.Document = readResponseData D.DocumentData
+  get D.Json = readResponseData D.JsonData
+  get D.Text = readResponseData D.TextData
+  get D.MozBlob = readResponseData D.BlobData
+  get D.MozChunkedText = readResponseData D.TextData
+  get D.MozChunkedArrayBuffer = readResponseData D.ArrayBufferData
 
 getResponseStatus :: ForeignResponse -> Status
 getResponseStatus r = readStatus $ runFn2 getResponsePropFn "status" r

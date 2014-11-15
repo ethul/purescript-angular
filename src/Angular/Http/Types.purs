@@ -1,16 +1,11 @@
 module Angular.Http.Types
   ( NgHttp()
   , HttpEff()
-  , Method(..)
   , Status(..)
-  , ResponseType(..)
   , RequestData(..)
-  , ResponseData(..)
   , Header()
   , Headers(..)
-  , Url()
   , RequestDataFn()
-  , ResponseDataFn()
   , ForeignRequestData()
   , ForeignResponseData()
   , ForeignCache()
@@ -20,7 +15,7 @@ module Angular.Http.Types
   , fnHeader
   , readCacheFn
   , readRequestDataFn
-  , readResponseDataFn
+  , readResponseData
   , readHeadersFn
   , readMethod
   , readResponseType
@@ -38,7 +33,8 @@ import Data.Tuple
 import Angular.Cache (Cache())
 import Angular.Promise (Promise())
 
-import qualified DOM.Types as D
+import qualified Data.DOM.Simple.Types as D
+import qualified Data.DOM.Simple.Ajax as D
 
 foreign import data NgHttp :: !
 
@@ -54,55 +50,16 @@ foreign import data ForeignTimeout :: *
 
 type HttpEff e r = Eff (nghttp :: NgHttp | e) r
 
-type Url = String
-
-data Method = GET | POST | PUT | DELETE | PATCH | HEAD | OPTIONS | JSONP
-
 data Status = OK | Created | NoContent | BadRequest | Unauthorized | Forbidden | NotFound | InternalServerError | OtherStatus Number
-
-data ResponseType = Default | ArrayBuffer | Blob | Document | Json | Text | MozBlob | MozChunkedText | MozChunkedArrayBuffer
 
 data RequestData a
   = NoRequestData
   | StringRequestData String
   | ObjectRequestData a
 
-data ResponseData a
-  = NoResponseData
-  | DefaultResponseData String
-  | ArrayBufferResponseData D.ArrayBuffer
-  | BlobResponseData D.Blob
-  | DocumentResponseData D.Document
-  | JsonResponseData a
-  | TextResponseData String
-  | MozBlobResponseData D.MozBlob
-  | MozChunkedTextResponseData D.MozChunkedText
-  | MozChunkedArrayBufferResponseData D.MozChunkedArrayBuffer
-
 type Header = Tuple String (Either String (Unit -> String))
 
 newtype Headers = Headers [Header]
-
-instance showMethod :: Show Method where
-  show GET = "GET"
-  show POST = "POST"
-  show PUT = "PUT"
-  show DELETE = "DELETE"
-  show PATCH = "PATCH"
-  show HEAD = "HEAD"
-  show OPTIONS = "OPTIONS"
-  show JSONP = "JSONP"
-
-instance showResponseType :: Show ResponseType where
-  show Default = ""
-  show ArrayBuffer = "arraybuffer"
-  show Blob = "blob"
-  show Document = "document"
-  show Json = "json"
-  show Text = "text"
-  show MozBlob = "moz-blob"
-  show MozChunkedText = "moz-chunked-text"
-  show MozChunkedArrayBuffer = "moz-chunked-arraybuffer"
 
 stringHeader :: String -> String -> Header
 stringHeader k v = Tuple k $ Left v
@@ -145,38 +102,15 @@ foreign import writeRequestData
   \ } "
   :: forall a. RequestData a -> ForeignRequestData
 
-type ResponseDataFn a
-  = { noResponseData :: ResponseData a
-    , defaultResponseData :: String -> ResponseData a
-    , arrayBufferResponseData :: D.ArrayBuffer -> ResponseData a
-    , blobResponseData :: D.Blob -> ResponseData a
-    , documentResponseData :: D.Document -> ResponseData a
-    , jsonResponseData :: a -> ResponseData a
-    , textResponseData :: String -> ResponseData a
-    , mozBlobResponseData :: D.MozBlob -> ResponseData a
-    , mozChunkedTextResponseData :: D.MozChunkedText -> ResponseData a
-    , mozChunkedArrayBufferResponseData :: D.MozChunkedArrayBuffer -> ResponseData a
-    }
-
 foreign import readResponseDataFn
-  " function readResponseDataFn(fn, responseType, data){ \
-  \   if (angular.isUndefined(data)) return fn.noResponseData; \
-  \   else { \
-  \     switch(responseType){ \
-  \       case '': return fn.defaultResponseData(data); \
-  \       case 'arraybuffer': return fn.arrayBufferResponseData(data); \
-  \       case 'blob': return fn.blobResponseData(data); \
-  \       case 'document': return fn.documentResponseData(data); \
-  \       case 'json': return fn.jsonResponseData(data); \
-  \       case 'text': return fn.textResponseData(data); \
-  \       case 'moz-blob': return fn.mozBlobResponseData(data); \
-  \       case 'moz-chunked-text': return fn.mozChunkedTextResponseData(data); \
-  \       case 'moz-chunked-arraybuffer': return fn.mozChunkedArrayBufferResponseData(data); \
-  \       default: throw new Error('failed pattern match'); \
-  \     } \
-  \   } \
+  " function readResponseDataFn(no, fn, data){ \
+  \   if (angular.isUndefined(data)) return no; \
+  \   else return fn(data); \
   \ } "
-  :: forall a. Fn3 (ResponseDataFn a) String ForeignResponseData (ResponseData a)
+  :: forall a d. Fn3 (D.HttpData a) (d -> D.HttpData a) ForeignResponseData (D.HttpData a)
+
+readResponseData :: forall a d. (d -> D.HttpData a) -> ForeignResponseData -> D.HttpData a
+readResponseData = runFn3 readResponseDataFn D.NoData
 
 foreign import readHeadersFn
   " function readHeadersFn(left, right, tuple, headers){ \
@@ -208,30 +142,30 @@ readStatus s =
        500 -> InternalServerError
        a -> OtherStatus a
 
-readMethod :: String -> Method
+readMethod :: String -> D.HttpMethod
 readMethod m =
   case m of
-       "GET" -> GET
-       "POST" -> POST
-       "PUT" -> PUT
-       "DELETE" -> DELETE
-       "PATCH" -> PATCH
-       "HEAD" -> HEAD
-       "OPTIONS" -> OPTIONS
-       "JSONP" -> JSONP
+       "GET" -> D.GET
+       "POST" -> D.POST
+       "PUT" -> D.PUT
+       "DELETE" -> D.DELETE
+       "PATCH" -> D.PATCH
+       "HEAD" -> D.HEAD
+       "OPTIONS" -> D.OPTIONS
+       "JSONP" -> D.JSONP
 
-readResponseType :: String -> ResponseType
+readResponseType :: String -> D.ResponseType
 readResponseType r =
   case r of
-       "" -> Default
-       "arraybuffer" -> ArrayBuffer
-       "blob" -> Blob
-       "document" -> Document
-       "json" -> Json
-       "text" -> Text
-       "moz-blob" -> MozBlob
-       "moz-chunked-test" -> MozChunkedText
-       "moz-chunked-arraybuffer" -> MozChunkedArrayBuffer
+       "" -> D.Default
+       "arraybuffer" -> D.ArrayBuffer
+       "blob" -> D.Blob
+       "document" -> D.Document
+       "json" -> D.Json
+       "text" -> D.Text
+       "moz-blob" -> D.MozBlob
+       "moz-chunked-test" -> D.MozChunkedText
+       "moz-chunked-arraybuffer" -> D.MozChunkedArrayBuffer
 
 foreign import readCacheFn
  " function readCacheFn(left, right, cache){ \

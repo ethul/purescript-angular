@@ -1,12 +1,10 @@
 module Angular.DI (
-    Dependency
-  , name
+    Dependency, name
   , Service
   , RootScope(..)
   , RootElement(..)
   , get
-  , Injectable
-  , dependencies
+  , Injectable, dependencies
   , Annotated()
   , annotate
   ) where
@@ -102,7 +100,7 @@ instance dependencyAttributes :: Dependency Attributes where
   name = "$attrs"
 
 instance dependencyThis :: Dependency (This a) where
-  -- it would be nice to make a dummy service to avoid the special handling 
+  -- it would be nice to make a dummy service to avoid the special handling
   -- in annotate, but there is nowhere to do so
   name = "$this"
 

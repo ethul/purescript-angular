@@ -1,6 +1,9 @@
 module Todomvc.Escape (EscapeDirective(), escape) where
 
 import Data.Maybe
+import Control.Bind ((>=>))
+
+import Data.DOM.Simple.Events (keyCode)
 
 import Angular.Attributes (get)
 import Angular.Element (on)
@@ -11,7 +14,8 @@ foreign import data EscapeDirective :: *
 escapeKey = 27
 
 link scope element attrs = do
-  on "keydown" (\e -> if e.keyCode == escapeKey
+  on "keydown" (keyCode >=> \kc ->
+                      if kc == escapeKey
                       then (get attrs) >>= (\as -> apply (stringApplyExpr as.todoEscape) scope)
                       else return unit) element
 
