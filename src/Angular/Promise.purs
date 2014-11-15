@@ -2,6 +2,7 @@ module Angular.Promise
   ( Promise(..)
   , then'
   , then''
+  , thenPure''
   , then'''
   , catch'
   , finally'
@@ -30,7 +31,7 @@ instance bindPromise :: Bind (Promise a) where
 instance monadPromise :: Monad (Promise a)
 
 instance bifunctorPromise :: Bifunctor Promise where
-  bimap f g = then'' (pureResolve <<< g) (pureReject <<< f)
+  bimap f g = thenPure'' g f
 
 foreign import pureResolve
   " function pureResolve(a){ \
@@ -65,10 +66,13 @@ foreign import thenFn''
   " function thenFn$prime$prime(f, g, fa){ \
   \   return fa['then'](f, g); \
   \ } "
-  :: forall a b c d. Fn3 (b -> Promise c d) (a -> Promise c d) (Promise a b) (Promise c d)
+  :: forall a b c d e. Fn3 (b -> c) (a -> d) (Promise a b) e
 
 then'' :: forall a b c d. (b -> Promise c d) -> (a -> Promise c d) -> Promise a b -> Promise c d
 then'' = runFn3 thenFn''
+
+thenPure'' :: forall a b c d. (b -> d) -> (a -> c) -> Promise a b -> Promise c d
+thenPure'' = runFn3 thenFn''
 
 foreign import thenFn'''
   " function thenFn$prime$prime$prime(f, g, h, fa){ \

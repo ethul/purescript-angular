@@ -713,6 +713,8 @@
 
     then''' :: forall e s t a b c d. (b -> Promise c d) -> (a -> Promise c d) -> (s -> Eff e t) -> Promise a b -> Promise c d
 
+    thenPure'' :: forall a b c d. (b -> d) -> (a -> c) -> Promise a b -> Promise c d
+
 
 ## Module Angular.Q
 
@@ -1039,7 +1041,7 @@
 
     instance applyPromise :: Apply (PromiseEff e f a)
 
-    instance bifunctorPromise :: Bifunctor (PromiseEff e f)
+    instance bifunctorPromiseEff :: Bifunctor (PromiseEff e f)
 
     instance bindPromiseEff :: Bind (PromiseEff e f a)
 
@@ -1048,9 +1050,7 @@
 
 ### Values
 
-    liftPromiseEff :: forall e f a b. Eff e a -> Eff f b -> PromiseEff e f a b
-
-    liftPromiseEff' :: forall e f a b. Eff f b -> PromiseEff e f a b
+    liftPromiseEff :: forall e f a b. Eff f b -> PromiseEff e f a b
 
     promiseEff :: forall e f a b. Promise a b -> PromiseEff e f a b
 
