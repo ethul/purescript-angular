@@ -682,36 +682,23 @@
     data Promise :: * -> * -> *
 
 
-### Type Class Instances
-
-    instance applicativePromise :: Applicative (Promise a)
-
-    instance applyPromise :: Apply (Promise a)
-
-    instance bifunctorPromise :: Bifunctor Promise
-
-    instance bindPromise :: Bind (Promise a)
-
-    instance functorPromise :: Functor (Promise a)
-
-    instance monadPromise :: Monad (Promise a)
-
-
 ### Values
 
-    catch' :: forall a b c d. (a -> Promise c d) -> Promise a b -> Promise c d
+    catch :: forall a b c d. (a -> Promise c d) -> Promise a b -> Promise c d
 
-    finally' :: forall e r a b. Eff e r -> Promise a b -> Promise a b
+    finally :: forall e r a b. Eff e r -> Promise a b -> Promise a b
 
-    pureReject :: forall a b. a -> Promise a b
+    then1 :: forall a b c. (b -> Promise a c) -> Promise a b -> Promise a c
 
-    pureResolve :: forall a b. b -> Promise a b
+    then1' :: forall a b c. (b -> c) -> Promise a b -> Promise a c
 
-    then' :: forall a b c. (b -> Promise a c) -> Promise a b -> Promise a c
+    then2 :: forall a b c d. (b -> Promise c d) -> (a -> Promise c d) -> Promise a b -> Promise c d
 
-    then'' :: forall a b c d. (b -> Promise c d) -> (a -> Promise c d) -> Promise a b -> Promise c d
+    then2' :: forall a b c d. (b -> d) -> (a -> c) -> Promise a b -> Promise c d
 
-    then''' :: forall e s t a b c d. (b -> Promise c d) -> (a -> Promise c d) -> (s -> Eff e t) -> Promise a b -> Promise c d
+    then3 :: forall e s t a b c d. (b -> Promise c d) -> (a -> Promise c d) -> (s -> Eff e t) -> Promise a b -> Promise c d
+
+    then3' :: forall e s t a b c d. (b -> d) -> (a -> c) -> (s -> Eff e t) -> Promise a b -> Promise c d
 
 
 ## Module Angular.Q
@@ -1023,44 +1010,6 @@
     stringHeader :: String -> String -> Header
 
     writeRequestData :: forall a. RequestData a -> ForeignRequestData
-
-
-## Module Angular.Promise.Eff
-
-### Types
-
-    newtype PromiseEff e f a b where
-      PromiseEff :: Promise (Eff e a) (Eff f b) -> PromiseEff e f a b
-
-
-### Type Class Instances
-
-    instance applicativePromiseEff :: Applicative (PromiseEff e f a)
-
-    instance applyPromise :: Apply (PromiseEff e f a)
-
-    instance bifunctorPromise :: Bifunctor (PromiseEff e f)
-
-    instance bindPromiseEff :: Bind (PromiseEff e f a)
-
-    instance functorPromiseEff :: Functor (PromiseEff e f a)
-
-
-### Values
-
-    liftPromiseEff :: forall e f a b. Eff e a -> Eff f b -> PromiseEff e f a b
-
-    liftPromiseEff' :: forall e f a b. Eff f b -> PromiseEff e f a b
-
-    promiseEff :: forall e f a b. Promise a b -> PromiseEff e f a b
-
-    promiseEff' :: forall e f a b. Promise a (Eff f b) -> PromiseEff e f a b
-
-    promiseEff'' :: forall e f a b. Promise (Eff e a) b -> PromiseEff e f a b
-
-    runPromiseEff :: forall e f a b. PromiseEff e f a b -> Promise (Eff e a) (Eff f b)
-
-    unsafeRunPromiseEff :: forall e f a b. PromiseEff e f a b -> Promise a b
 
 
 
