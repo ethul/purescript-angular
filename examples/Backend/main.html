@@ -1,0 +1,30 @@
+<!doctype html>
+<html class="no-js"
+      lang=""
+      ng-app="backend">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible"
+          content="IE=edge">
+    <title>Backend</title>
+    <meta name="description"
+          content="">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1">
+    <link rel="stylesheet"
+          href="../../bower_components/angular/angular-csp.css">
+  </head>
+  <body ng-controller="Main as mainctrl">
+    <form ng-submit="mainctrl.submit(mainctrl.text)()"
+          novalidate>
+      <button type="submit">
+        Submit
+      </button>
+    </form>
+    <code ng-cloak>
+      {{mainctrl.value.value0}}
+    </code>
+    <script src="../../bower_components/angular/angular.js"></script>
+    <script src="../../dist/backend.js"></script>
+  </body>
+</html>

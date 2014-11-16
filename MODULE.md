@@ -381,7 +381,7 @@
 
     data Http :: *
 
-    type HttpResponse e r a b c d = HttpEff e (Promise (Response r a b c d) (Response r a b c d))
+    type HttpResponse e r a b c d = HttpEff e (Promise I.ForeignResponse (Response r a b c d))
 
     type Response r a b c d = { statusText :: String, config :: Config a b c d, headers :: [String] -> String, status :: Status, "data" :: D.HttpData r }
 
@@ -681,12 +681,18 @@
 
     data Promise :: * -> * -> *
 
+    type PromiseEC e a b = ErrorT a (ContT Unit (Eff e)) b
+
 
 ### Values
 
     catch :: forall a b c d. (a -> Promise c d) -> Promise a b -> Promise c d
 
     finally :: forall e r a b. Eff e r -> Promise a b -> Promise a b
+
+    liftPromiseEC :: forall e a b. (Error a) => Eff e (Promise a b) -> PromiseEC e a b
+
+    runPromiseEC :: forall e a b. PromiseEC e a b -> (Either a b -> Eff e Unit) -> Eff e Unit
 
     then1 :: forall a b c. (b -> Promise a c) -> Promise a b -> Promise a c
 
@@ -882,6 +888,11 @@
     data ForeignConfig :: *
 
     data ForeignResponse :: *
+
+
+### Type Class Instances
+
+    instance errorForeignResponse :: Error ForeignResponse
 
 
 ### Values

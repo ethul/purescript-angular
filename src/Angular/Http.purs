@@ -29,11 +29,11 @@ import qualified Data.DOM.Simple.Ajax as D
 import Angular.Cache (Cache())
 import qualified Angular.Http.Internal as I
 import Angular.Http.Types
-import Angular.Promise (Promise(), then2')
+import Angular.Promise (Promise(), then1')
 
 foreign import data Http :: *
 
-type HttpResponse e r a b c d = HttpEff e (Promise (Response r a b c d) (Response r a b c d))
+type HttpResponse e r a b c d = HttpEff e (Promise I.ForeignResponse (Response r a b c d))
 
 type ForeignHttpResponse e = HttpEff e (Promise I.ForeignResponse I.ForeignResponse)
 
@@ -77,7 +77,7 @@ config = { method: D.GET
          , responseType: D.Default }
 
 http :: forall e r a b c d. Config a b c d -> Http -> HttpResponse e r a b c d
-http c h = (then2' foreignResponse foreignResponse) <$> (foreignConfig c >>= runFn2 httpFn h)
+http c h = (then1' foreignResponse) <$> (foreignConfig c >>= runFn2 httpFn h)
 
 get :: forall e r a b c d. D.Url -> Http -> HttpResponse e r a b c d
 get u = runHttpFn' D.GET u config
@@ -119,13 +119,13 @@ runHttpFn' :: forall e r a b c d. D.HttpMethod -> D.Url -> Config a b c d -> Htt
 runHttpFn' m u c h = do
   conf <- foreignConfig c
   res <- runFn4 httpFn' (show m) u conf h
-  return $ then2' foreignResponse foreignResponse res
+  return $ then1' foreignResponse res
 
 runHttpFn'' :: forall e r a b c d. D.HttpMethod -> D.Url -> RequestData b -> Config a b c d -> Http -> HttpResponse e r a b c d
 runHttpFn'' m u d c h = do
   conf <- foreignConfig c
   res <- runFn5 httpFn'' (show m) u (writeRequestData d) conf h
-  return $ then2' foreignResponse foreignResponse res
+  return $ then1' foreignResponse res
 
 foreignConfig :: forall e a b c d. Config a b c d -> HttpEff e I.ForeignConfig
 foreignConfig conf = do

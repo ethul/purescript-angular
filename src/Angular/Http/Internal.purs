@@ -32,6 +32,7 @@ module Angular.Http.Internal
   ) where
 
 import Control.Monad.Eff
+import Control.Monad.Error
 import Data.Either
 import Data.Foldable (for_)
 import Data.Function
@@ -46,6 +47,18 @@ import Angular.Promise (Promise())
 foreign import data ForeignConfig :: *
 
 foreign import data ForeignResponse :: *
+
+foreign import unimplementedForeignResponse
+  """
+    function foreignResponse(){
+      return {
+      };
+    }
+  """ :: ForeignResponse
+
+instance errorForeignResponse :: Error ForeignResponse where
+  noMsg = unimplementedForeignResponse
+  strMsg = \_ -> unimplementedForeignResponse
 
 setConfigMethod :: forall e. D.HttpMethod -> ForeignConfig -> HttpEff e Unit
 setConfigMethod m = runFn3 setConfigPropFn "method" (show m)
