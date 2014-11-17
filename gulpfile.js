@@ -13,14 +13,23 @@ var gulp = require('gulp')
           'src/**/*.purs'
         ],
         examples: {
-          todomvc: 'examples/Todomvc/**/*.purs'
+          todomvc: {
+            src: 'examples/Todomvc/**/*.purs',
+            options: {
+              main: 'Todomvc.Main',
+              output: 'todomvc.js'
+            }
+          },
+          backend: {
+            src: 'examples/Backend/**/*.purs',
+            options: {
+              main: 'Backend.Main',
+              output: 'backend.js'
+            }
+          }
         },
         dest: 'dist',
-        docs: 'MODULE.md',
-        options: {
-          main: 'Todomvc.Main',
-          output: 'todomvc.js'
-        }
+        docs: 'MODULE.md'
       },
       nstatic: {
         root: '.',
@@ -55,9 +64,19 @@ gulp.task('clean', function(){
 
 gulp.task('todomvc', ['clean'], function(){
   return (
-    gulp.src([config.purescript.examples.todomvc].concat(config.purescript.src)).
+    gulp.src([config.purescript.examples.todomvc.src].concat(config.purescript.src)).
     pipe(plumber()).
-    pipe(purescript.psc(config.purescript.options)).
+    pipe(purescript.psc(config.purescript.examples.todomvc.options)).
+    on('error', error).
+    pipe(gulp.dest(config.purescript.dest))
+  );
+});
+
+gulp.task('backend', ['clean'], function(){
+  return (
+    gulp.src([config.purescript.examples.backend.src].concat(config.purescript.src)).
+    pipe(plumber()).
+    pipe(purescript.psc(config.purescript.examples.backend.options)).
     on('error', error).
     pipe(gulp.dest(config.purescript.dest))
   );
@@ -96,7 +115,12 @@ gulp.task('watch', function(cb){
 });
 
 gulp.task('watch.todomvc', function(cb){
-  gulp.watch([config.purescript.examples.todomvc].concat(config.purescript.src), ['todomvc']);
+  gulp.watch([config.purescript.examples.todomvc.src].concat(config.purescript.src), ['todomvc']);
+  server(cb);
+});
+
+gulp.task('watch.backend', function(cb){
+  gulp.watch([config.purescript.examples.backend.src].concat(config.purescript.src), ['backend']);
   server(cb);
 });
 

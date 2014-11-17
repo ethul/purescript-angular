@@ -1,102 +1,117 @@
 module Angular.Promise
-  ( Promise(..)
-  , then'
-  , then''
-  , then'''
-  , catch'
-  , finally'
-  , pureResolve
-  , pureReject
+  ( Promise()
+  , PromiseEC()
+  , then1
+  , then1'
+  , then2
+  , then2'
+  , then3
+  , then3'
+  , catch
+  , finally
+  , liftPromiseEC
+  , runPromiseEC
   ) where
 
+import Control.Monad.Cont.Trans (ContT(..), runContT)
 import Control.Monad.Eff
-import Data.Bifunctor
+import Control.Monad.Error (Error)
+import Control.Monad.Error.Trans (ErrorT(..), runErrorT)
+import Control.Monad.Trans (lift)
+
+import Data.Either (Either(Right, Left))
 import Data.Function
 
 foreign import data Promise :: * -> * -> *
 
-instance functorPromise :: Functor (Promise a) where
-  (<$>) = liftA1
+type PromiseEC e a b = ErrorT a (ContT Unit (Eff e)) b
 
-instance applyPromise :: Apply (Promise a) where
-  (<*>) = ap
+foreign import then1Fn
+  """
+    function then1Fn(f, fa){
+      return fa['then'](f);
+    }
+  """ :: forall a b c d. Fn2 (b -> c) (Promise a b) (Promise a d)
 
-instance applicativePromise :: Applicative (Promise a) where
-  pure = pureResolve
+then1 :: forall a b c. (b -> Promise a c) -> Promise a b -> Promise a c
+then1 = runFn2 then1Fn
 
-instance bindPromise :: Bind (Promise a) where
-  (>>=) = flip then'
+then1' :: forall a b c. (b -> c) -> Promise a b -> Promise a c
+then1' = runFn2 then1Fn
 
-instance monadPromise :: Monad (Promise a)
+foreign import then2Fn
+  """
+    function then2Fn(f, g, fa){
+      return fa['then'](f, g);
+    }
+  """ :: forall s t a b c d. Fn3 (b -> d) (a -> c) (Promise a b) (Promise s t)
 
-instance bifunctorPromise :: Bifunctor Promise where
-  bimap f g = then'' (pureResolve <<< g) (pureReject <<< f)
+then2 :: forall a b c d. (b -> Promise c d) -> (a -> Promise c d) -> Promise a b -> Promise c d
+then2 = runFn3 then2Fn
 
-foreign import pureResolve
-  " function pureResolve(a){ \
-  \   var $q = angular.injector(['ng']).get('$q') \
-  \     , dfd = $q.defer() \
-  \   ; \
-  \   dfd.resolve(a); \
-  \   return dfd.promise; \
-  \ } "
-  :: forall a b. b -> Promise a b
+then2' :: forall a b c d. (b -> d) -> (a -> c) -> Promise a b -> Promise c d
+then2' = runFn3 then2Fn
 
-foreign import pureReject
-  " function pureReject(a){ \
-  \   var $q = angular.injector(['ng']).get('$q') \
-  \     , dfd = $q.defer() \
-  \   ; \
-  \   dfd.reject(a); \
-  \   return dfd.promise; \
-  \ } "
-  :: forall a b. a -> Promise a b
+foreign import then3Fn
+  """
+    function then3Fn(f, g, h, fa){
+      return fa['then'](f, g, function(a){
+        return h(a)();
+      });
+    }
+  """ :: forall e q r s t a b c d. Fn4 (b -> d)
+                                       (a -> c)
+                                       (s -> Eff e t)
+                                       (Promise a b)
+                                       (Promise q r)
 
-foreign import thenFn'
-  " function thenFn$prime(f, fa){ \
-  \   return fa['then'](f); \
-  \ } "
-  :: forall a b c d. Fn2 (b -> Promise c d) (Promise a b) (Promise c d)
+then3 :: forall e s t a b c d. (b -> Promise c d) -> (a -> Promise c d) -> (s -> Eff e t) -> Promise a b -> Promise c d
+then3 = runFn4 then3Fn
 
-then' :: forall a b c. (b -> Promise a c) -> Promise a b -> Promise a c
-then' = runFn2 thenFn'
+then3' :: forall e s t a b c d. (b -> d) -> (a -> c) -> (s -> Eff e t) -> Promise a b -> Promise c d
+then3' = runFn4 then3Fn
 
-foreign import thenFn''
-  " function thenFn$prime$prime(f, g, fa){ \
-  \   return fa['then'](f, g); \
-  \ } "
-  :: forall a b c d. Fn3 (b -> Promise c d) (a -> Promise c d) (Promise a b) (Promise c d)
+foreign import catchFn
+  """
+    function catchFn(f, fa){
+      return fa['catch'](f);
+    }
+  """ :: forall a b c d. Fn2 (a -> Promise c d) (Promise a b) (Promise c d)
 
-then'' :: forall a b c d. (b -> Promise c d) -> (a -> Promise c d) -> Promise a b -> Promise c d
-then'' = runFn3 thenFn''
+catch :: forall a b c d. (a -> Promise c d) -> Promise a b -> Promise c d
+catch = runFn2 catchFn
 
-foreign import thenFn'''
-  " function thenFn$prime$prime$prime(f, g, h, fa){ \
-  \   return fa['then'](f, g, function(a){return h(a)();}); \
-  \ } "
-  :: forall e s t a b c d. Fn4 (b -> Promise c d)
-                               (a -> Promise c d)
-                               (s -> Eff e t)
-                               (Promise a b)
-                               (Promise c d)
+foreign import finallyFn
+  """
+    function finallyFn(f, fa){
+      return fa['finally'](f);
+    }
+  """ :: forall e r a b. Fn2 (Eff e r) (Promise a b) (Promise a b)
 
-then''' :: forall e s t a b c d. (b -> Promise c d) -> (a -> Promise c d) -> (s -> Eff e t) -> Promise a b -> Promise c d
-then''' = runFn4 thenFn'''
+finally :: forall e r a b. Eff e r -> Promise a b -> Promise a b
+finally = runFn2 finallyFn
 
-foreign import catchFn'
-  " function catchFn$prime(f, fa){ \
-  \   return fa['catch'](f); \
-  \ } "
-  :: forall a b c d. Fn2 (a -> Promise c d) (Promise a b) (Promise c d)
+foreign import then2ECFn
+  """
+    function then2ECFn(f, g, fa){
+      return function(){
+        var run = function(k){
+          return function(a){
+            return k(a)();
+          };
+        };
+        fa['then'](run(f), run(g));
+      };
+    }
+  """ :: forall e a b c. Fn3 (b -> c) (a -> c) (Promise a b) (Eff e Unit)
 
-catch' :: forall a b c d. (a -> Promise c d) -> Promise a b -> Promise c d
-catch' = runFn2 catchFn'
+promiseEC :: forall e a b. Promise a b -> PromiseEC e a b
+promiseEC = ErrorT <<< ContT <<< cb
+  where
+    cb fa k = runFn3 then2ECFn (k <<< Right) (k <<< Left) fa
 
-foreign import finallyFn'
-  " function finallyFn$prime(f, fa){ \
-  \   return fa['finally'](f); \
-  \ } "
-  :: forall e r a b. Fn2 (Eff e r) (Promise a b) (Promise a b)
+liftPromiseEC :: forall e a b. (Error a) => Eff e (Promise a b) -> PromiseEC e a b
+liftPromiseEC fa = (lift $ lift fa) >>= promiseEC
 
-finally' :: forall e r a b. Eff e r -> Promise a b -> Promise a b
-finally' = runFn2 finallyFn'
+runPromiseEC :: forall e a b. PromiseEC e a b -> (Either a b -> Eff e Unit) -> Eff e Unit
+runPromiseEC = runContT <<< runErrorT
