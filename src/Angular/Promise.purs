@@ -103,7 +103,7 @@ foreign import then2ECFn
         fa['then'](run(f), run(g));
       };
     }
-  """ :: forall e a b c d. Fn3 (b -> d) (a -> c) (Promise a b) (Eff e Unit)
+  """ :: forall e a b c. Fn3 (b -> c) (a -> c) (Promise a b) (Eff e Unit)
 
 promiseEC :: forall e a b. Promise a b -> PromiseEC e a b
 promiseEC = ErrorT <<< ContT <<< cb

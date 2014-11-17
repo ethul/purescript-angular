@@ -50,7 +50,7 @@ foreign import data ForeignResponse :: *
 
 foreign import unimplementedForeignResponse
   """
-    function foreignResponse(){
+    function unimplementedForeignResponse(){
       return {
       };
     }
