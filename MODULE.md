@@ -806,7 +806,7 @@
 
     id :: forall a. Scope a -> String
 
-    modifyScope :: forall e a b. ({  | a } -> Eff e {  | b }) -> Scope a -> ReadWriteEff e Unit
+    modifyScope :: forall e a b. ({  | a } -> ReadWriteEff e {  | b }) -> Scope a -> ReadWriteEff e Unit
 
     newScope :: forall e a b. Boolean -> Scope a -> ScopeEff e (Scope b)
 
@@ -848,7 +848,7 @@
 
     extendThis :: forall e a b. {  | b } -> This a -> WriteEff e
 
-    modifyThis :: forall e a b. ({  | a } -> Eff e {  | b }) -> This a -> ReadWriteEff e Unit
+    modifyThis :: forall e a b. ({  | a } -> ReadWriteEff e {  | b }) -> This a -> ReadWriteEff e Unit
 
     readThis :: forall e a. This a -> ReadEff e a
 

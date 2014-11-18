@@ -79,7 +79,7 @@ type ReadWriteEff e r = Eff (ngrscope :: NgReadScope, ngwscope :: NgWriteScope |
 
 type ScopeEff e r = Eff (ngscope :: NgScope | e) r
 
-modifyScope :: forall e a b. ({ | a} -> Eff e { | b }) -> Scope a -> ReadWriteEff e Unit
+modifyScope :: forall e a b. ({ | a} -> ReadWriteEff e { | b }) -> Scope a -> ReadWriteEff e Unit
 modifyScope k s = do
   s' <- readScope s
   w <- unsafeInterleaveEff $ k s'
