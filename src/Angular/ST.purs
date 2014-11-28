@@ -1,7 +1,8 @@
 module Angular.ST where
 
 import Control.Monad.Eff
-import Control.Monad.ST (ST(), STArray())
+import Control.Monad.ST (ST())
+import Data.Array.ST (STArray())
 
 foreign import readSTArray "function readSTArray(arr) {\
                            \  return function() {\
