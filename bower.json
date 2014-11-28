@@ -16,6 +16,7 @@
     "dist"
   ],
   "dependencies": {
+    "purescript-arrays": "0.2.2",
     "purescript-either": "0.1.4",
     "purescript-exceptions": "0.2.2",
     "purescript-foldable-traversable": "0.1.4",
@@ -28,7 +29,6 @@
     "angular": "1.2.26",
     "todomvc-common": "0.1.9",
     "purescript-strings": "0.4.1",
-    "purescript-arrays": "0.2.2",
     "purescript-control": "0.2.1"
   }
 }
