@@ -4,15 +4,14 @@ import qualified Data.Array as A
 import qualified Data.String as S
 import Data.Foldable
 import Data.Maybe
+import Control.Apply ((*>))
 import Control.Monad (unless, when)
 import Control.Monad.Eff
-import Control.Monad.ST (ST(), STArray(), newSTArray, runSTArray)
 
 import Angular (copy, extend)
 import Angular.Location (Location(), getPath, setPath)
 import Angular.Scope (Scope(), watch, readScope, extendScope, modifyScope)
-import Angular.This(readThis, writeThis)
-import Angular.ST (readSTArray, pushSTArray, pushAllSTArray, writeSTArray, spliceSTArray)
+import Angular.This (readThis, writeThis)
 
 import Todomvc.Storage (Store(), Todo(), get, put)
 
@@ -23,33 +22,31 @@ addTodo scope = do
   unless empty $ do
     let todo = { title: title, completed: false }
     todos <- get
-    put $ todos <> [todo]
-    pushSTArray s.todos todo
-    extendScope { newTodo: ""
+    let res = todos <> [todo]
+    put res
+    extendScope { todos: res
+                , newTodo: ""
                 , remainingCount: s.remainingCount + 1 } scope
 
 todoCompleted scope todo
   = modifyScope (\s -> do
       let change = if todo.completed then -1 else 1
-      arr <- readSTArray s.todos
-      put arr
+      put s.todos
       return { remainingCount: s.remainingCount + change }
     ) scope
 
 clearCompletedTodos scope = do
   s <- readScope scope
-  arr <- readSTArray s.todos
-  let res = A.filter (\a -> not a.completed) arr
+  let res = A.filter (\a -> not a.completed) s.todos
   put res
-  writeSTArray s.todos res
+  extendScope { todos: res } scope
 
 markAll scope compl
   = modifyScope (\s -> do
-      arr <- readSTArray s.todos
-      let res = (\a -> a { completed = not compl }) <$> arr
+      let res = (\a -> a { completed = not compl }) <$> s.todos
       put res
-      writeSTArray s.todos res
-      return { remainingCount: if compl then A.length res else 0 }
+      return { todos: res
+             , remainingCount: if compl then A.length res else 0 }
     ) scope
 
 editTodo scope todo = do
@@ -62,31 +59,26 @@ doneEditing scope todo
       let title = S.trim todo.title
       when (S.length title == 0) $ removeTodo scope todo
       extend todo { title: title }
-      arr <- readSTArray s.todos
-      put arr
+      put s.todos
       return { editedTodo: Nothing }
     ) scope
 
 removeTodo scope todo = do
   s <- readScope scope
-  arr <- readSTArray s.todos
-  let i = A.findIndex (\a -> refEq a todo) arr
-  unless (i == -1) do
+  let res = A.filter (\a -> not $ refEq a todo) s.todos
+  unless (A.length res == A.length s.todos) do
     let c = if todo.completed then 0 else -1
-    extendScope { remainingCount: s.remainingCount + c} scope
-    spliceSTArray s.todos i 1 []
-    put arr
+    extendScope { todos: res
+                , remainingCount: s.remainingCount + c } scope
+    put res
 
 revertEditing scope todo = do
   s <- readScope scope
-  arr <- readSTArray s.todos
-  let i = A.findIndex (\a -> refEq a todo) arr
-  unless (i == -1) do
+  let res = A.filter (\a -> not $ refEq a todo) s.todos
+  unless (A.length res == A.length s.todos) do
     case s.originalTodo of
-      Just t  -> do
-        spliceSTArray s.todos i 1 [t]
-        doneEditing scope t
-        return unit
+      Just t  -> extendScope { todos: res <> [t] } scope *>
+                 doneEditing scope t
       Nothing -> return unit
 
 watchRemainingCount scope =
@@ -108,15 +100,13 @@ todoctrl scope this location = do
   if S.length path == 0 then setPath "/" location else return ""
   watchRemainingCount scope
   watchLocationPath scope
-  todosRef <- newSTArray 0 { title: "", completed: false }
   todos <- get
-  pushAllSTArray todosRef todos
   let remainingCount = foldl (\b a -> if a.completed then b else b + 1) 0 todos
   extendScope { fromMaybe: fromMaybe
               , newTodo: ""
               , editedTodo: Nothing
               , originalTodo: Nothing
-              , todos: todosRef
+              , todos: todos
               , remainingCount: remainingCount
               , location: location
               , addTodo: addTodo scope
