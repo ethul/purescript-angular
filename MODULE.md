@@ -729,21 +729,6 @@
     when :: forall e a b. b -> Q -> QEff e (Promise a b)
 
 
-## Module Angular.ST
-
-### Values
-
-    pushAllSTArray :: forall a h r. STArray h a -> [a] -> Eff (st :: ST h | r) Number
-
-    pushSTArray :: forall a h r. STArray h a -> a -> Eff (st :: ST h | r) Number
-
-    readSTArray :: forall a h r. STArray h a -> Eff (st :: ST h | r) [a]
-
-    spliceSTArray :: forall a h r. STArray h a -> Number -> Number -> [a] -> Eff (st :: ST h | r) [a]
-
-    writeSTArray :: forall a h r. STArray h a -> [a] -> Eff (st :: ST h | r) [a]
-
-
 ## Module Angular.Scope
 
 ### Types
