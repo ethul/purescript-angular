@@ -12,19 +12,20 @@
   </head>
   <body>
     <section id="todoapp"
-             ng-controller="TodoCtrl">
+             ng-controller="Main as mainctrl">
       <header id="header">
         <h1>todos</h1>
         <form id="todo-form"
-              ng-submit="addTodo()">
+              ng-submit="mainctrl.run(mainctrl.add({ title: mainctrl.newTodo
+                                                   , completed: false}))()">
           <input id="new-todo"
                  placeholder="What needs to be done?"
-                 ng-model="newTodo"
+                 ng-model="mainctrl.newTodo"
                  autofocus>
         </form>
       </header>
       <section id="main"
-               ng-show="todos.length"
+               ng-show="mainctrl.todos.length"
                ng-cloak>
         <input id="toggle-all"
                type="checkbox"
@@ -32,7 +33,7 @@
                ng-click="markAll(allChecked)()">
         <label for="toggle-all">Mark all as complete</label>
         <ul id="todo-list">
-          <li ng-repeat="todo in todos | filter:statusFilter track by $index"
+          <li ng-repeat="todo in mainctrl.todos track by $index"
               ng-class="{completed: todo.completed, editing: todo == fromMaybe(undefined)(editedTodo)}">
             <div class="view">
               <input class="toggle"
@@ -55,10 +56,10 @@
         </ul>
       </section>
       <footer id="footer"
-              ng-show="todos.length"
+              ng-show="mainctrl.todos.length"
               ng-cloak>
-        <span id="todo-count"><strong>{{remainingCount}}</strong>
-          <ng-pluralize count="remainingCount"
+        <span id="todo-count"><strong>{{maincrtrl.remainingCount}}</strong>
+          <ng-pluralize count="mainctrl.remainingCount"
                         when="{one: 'item left', other: 'items left'}"></ng-pluralize>
         </span>
         <ul id="filters">
@@ -77,7 +78,7 @@
         </ul>
         <button id="clear-completed"
                 ng-click="clearCompletedTodos()"
-                ng-show="remainingCount < todos.length">Clear completed ({{todos.length - remainingCount}})</button>
+                ng-show="mainctrl.remainingCount < mainctrl.todos.length">Clear completed ({{mainctrl.todos.length - mainctrl.remainingCount}})</button>
       </footer>
     </section>
     <footer id="info">
