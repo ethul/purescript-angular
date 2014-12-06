@@ -16,50 +16,53 @@
       <header id="header">
         <h1>todos</h1>
         <form id="todo-form"
-              ng-submit="mainctrl.run(mainctrl.add({ title: mainctrl.newTodo
+              ng-submit="mainctrl.run(mainctrl.add({ title: mainctrl.app.newTodo
                                                    , completed: false}))()">
           <input id="new-todo"
                  placeholder="What needs to be done?"
-                 ng-model="mainctrl.newTodo"
+                 ng-model="mainctrl.app.newTodo"
                  autofocus>
         </form>
       </header>
       <section id="main"
-               ng-show="mainctrl.todos.length"
+               ng-show="mainctrl.app.todos.length"
                ng-cloak>
         <input id="toggle-all"
                type="checkbox"
-               ng-model="allChecked"
-               ng-click="markAll(allChecked)()">
+               ng-checked="mainctrl.app.remainingCount == 0"
+               ng-click="mainctrl.run(mainctrl.markAll(mainctrl.app.remainingCount == 0))()">
         <label for="toggle-all">Mark all as complete</label>
         <ul id="todo-list">
-          <li ng-repeat="todo in mainctrl.todos track by $index"
-              ng-class="{completed: todo.completed, editing: todo == fromMaybe(undefined)(editedTodo)}">
+          <li ng-repeat="todo in mainctrl.app.todos | filter:mainctrl.fromMaybe({})(mainctrl.statusFilter())
+                                                    track by $index"
+              ng-class="{ completed: todo.completed
+                        , editing: todo == mainctrl.fromMaybe(undefined)(mainctrl.app.editedTodo)}">
             <div class="view">
               <input class="toggle"
                      type="checkbox"
                      ng-model="todo.completed"
-                     ng-change="todoCompleted(todo)()">
-              <label ng-dblclick="editTodo(todo)()">{{todo.title}}</label>
+                     ng-change="mainctrl.run(mainctrl.completed(todo))()">
+              <label ng-dblclick="mainctrl.run(mainctrl.edit(todo))()">{{todo.title}}</label>
               <button class="destroy"
-                      ng-click="removeTodo(todo)()"></button>
+                      ng-click="mainctrl.run(mainctrl.remove(todo))()"></button>
             </div>
-            <form ng-submit="doneEditing(todo)()">
+            <form ng-submit="mainctrl.run(mainctrl.doneEdit(todo))()">
               <input class="edit"
                      ng-trim="false"
                      ng-model="todo.title"
-                     ng-blur="doneEditing(todo)()"
-                     todo-escape="revertEditing(todo)()"
-                     todo-focus="todo == fromMaybe(undefined)(editedTodo)">
+                     ng-blur="mainctrl.run(mainctrl.doneEdit(todo))()"
+                     todo-escape="mainctrl.run(mainctrl.revert(todo))()"
+                     todo-focus="todo == mainctrl.fromMaybe(undefined)(mainctrl.app.editedTodo)">
             </form>
           </li>
         </ul>
       </section>
       <footer id="footer"
-              ng-show="mainctrl.todos.length"
+              ng-show="mainctrl.app.todos.length"
               ng-cloak>
-        <span id="todo-count"><strong>{{maincrtrl.remainingCount}}</strong>
-          <ng-pluralize count="mainctrl.remainingCount"
+        <span id="todo-count">
+          <strong>{{mainctrl.app.remainingCount}}</strong>
+          <ng-pluralize count="mainctrl.app.remainingCount"
                         when="{one: 'item left', other: 'items left'}"></ng-pluralize>
         </span>
         <ul id="filters">
@@ -77,8 +80,10 @@
           </li>
         </ul>
         <button id="clear-completed"
-                ng-click="clearCompletedTodos()"
-                ng-show="mainctrl.remainingCount < mainctrl.todos.length">Clear completed ({{mainctrl.todos.length - mainctrl.remainingCount}})</button>
+                ng-click="mainctrl.run(mainctrl.clearCompleted)()"
+                ng-show="mainctrl.app.remainingCount < mainctrl.app.todos.length">
+          Clear completed ({{mainctrl.app.todos.length - mainctrl.app.remainingCount}})
+        </button>
       </footer>
     </section>
     <footer id="info">
