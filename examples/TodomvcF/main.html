@@ -67,15 +67,15 @@
         </span>
         <ul id="filters">
           <li>
-            <a ng-class="{selected: location.path() == '/'}"
+            <a ng-class="{selected: mainctrl.location.path() == '/'}"
                href="#/">All</a>
           </li>
           <li>
-            <a ng-class="{selected: location.path() == '/active'}"
+            <a ng-class="{selected: mainctrl.location.path() == '/active'}"
                href="#/active">Active</a>
           </li>
           <li>
-            <a ng-class="{selected: location.path() == '/completed'}"
+            <a ng-class="{selected: mainctrl.location.path() == '/completed'}"
                href="#/completed">Completed</a>
           </li>
         </ul>

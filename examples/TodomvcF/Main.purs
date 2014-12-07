@@ -37,6 +37,7 @@ mainctrl this location =
                 , completed: completed
                 , doneEdit: doneEdit
                 , statusFilter: statusFilter
+                , location: location
                 , fromMaybe: fromMaybe
                 , run: (run <<< toForeignThis <<< AppT) app'
                 , app: app' } this
