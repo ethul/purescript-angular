@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en"
+      ng-app="todomvcf"
+      data-framework="angularjs">
+  <head>
+    <meta charset="utf-8">
+    <title>AngularJS • TodoMVC</title>
+    <link rel="stylesheet"
+          href="../../bower_components/angular/angular-csp.css">
+    <link rel="stylesheet"
+          href="../../bower_components/todomvc-common/base.css">
+  </head>
+  <body>
+    <section id="todoapp"
+             ng-controller="Main as mainctrl">
+      <header id="header">
+        <h1>todos</h1>
+        <form id="todo-form"
+              ng-submit="mainctrl.run(mainctrl.add({ title: mainctrl.app.newTodo
+                                                   , completed: false}))()">
+          <input id="new-todo"
+                 placeholder="What needs to be done?"
+                 ng-model="mainctrl.app.newTodo"
+                 autofocus>
+        </form>
+      </header>
+      <section id="main"
+               ng-show="mainctrl.app.todos.length"
+               ng-cloak>
+        <input id="toggle-all"
+               type="checkbox"
+               ng-checked="mainctrl.app.remainingCount == 0"
+               ng-click="mainctrl.run(mainctrl.markAll(mainctrl.app.remainingCount == 0))()">
+        <label for="toggle-all">Mark all as complete</label>
+        <ul id="todo-list">
+          <li ng-repeat="todo in mainctrl.app.todos | filter:mainctrl.fromMaybe({})(mainctrl.statusFilter())
+                                                    track by $index"
+              ng-class="{ completed: todo.completed
+                        , editing: todo == mainctrl.fromMaybe(undefined)(mainctrl.app.editedTodo)}">
+            <div class="view">
+              <input class="toggle"
+                     type="checkbox"
+                     ng-model="todo.completed"
+                     ng-change="mainctrl.run(mainctrl.completed(todo))()">
+              <label ng-dblclick="mainctrl.run(mainctrl.edit(todo))()">{{todo.title}}</label>
+              <button class="destroy"
+                      ng-click="mainctrl.run(mainctrl.remove(todo))()"></button>
+            </div>
+            <form ng-submit="mainctrl.run(mainctrl.doneEdit(todo))()">
+              <input class="edit"
+                     ng-trim="false"
+                     ng-model="todo.title"
+                     ng-blur="mainctrl.run(mainctrl.doneEdit(todo))()"
+                     todo-escape="mainctrl.run(mainctrl.revert(todo))()"
+                     todo-focus="todo == mainctrl.fromMaybe(undefined)(mainctrl.app.editedTodo)">
+            </form>
+          </li>
+        </ul>
+      </section>
+      <footer id="footer"
+              ng-show="mainctrl.app.todos.length"
+              ng-cloak>
+        <span id="todo-count">
+          <strong>{{mainctrl.app.remainingCount}}</strong>
+          <ng-pluralize count="mainctrl.app.remainingCount"
+                        when="{one: 'item left', other: 'items left'}"></ng-pluralize>
+        </span>
+        <ul id="filters">
+          <li>
+            <a ng-class="{selected: mainctrl.location.path() == '/'}"
+               href="#/">All</a>
+          </li>
+          <li>
+            <a ng-class="{selected: mainctrl.location.path() == '/active'}"
+               href="#/active">Active</a>
+          </li>
+          <li>
+            <a ng-class="{selected: mainctrl.location.path() == '/completed'}"
+               href="#/completed">Completed</a>
+          </li>
+        </ul>
+        <button id="clear-completed"
+                ng-click="mainctrl.run(mainctrl.clearCompleted)()"
+                ng-show="mainctrl.app.remainingCount < mainctrl.app.todos.length">
+          Clear completed ({{mainctrl.app.todos.length - mainctrl.app.remainingCount}})
+        </button>
+      </footer>
+    </section>
+    <footer id="info">
+      <p>Double-click to edit a todo</p>
+      <p>Credits:
+        <a href="http://twitter.com/cburgdorf">Christoph Burgdorf</a>,
+        <a href="http://ericbidelman.com">Eric Bidelman</a>,
+        <a href="http://jacobmumm.com">Jacob Mumm</a> and
+        <a href="http://igorminar.com">Igor Minar</a>
+      </p>
+      <p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
+    </footer>
+    <script src="../../bower_components/angular/angular.js"></script>
+    <script src="../../dist/todomvcf.js"></script>
+  </body>
+</html>

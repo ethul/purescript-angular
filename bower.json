@@ -29,6 +29,8 @@
     "angular": "1.2.26",
     "todomvc-common": "0.1.9",
     "purescript-strings": "0.4.1",
-    "purescript-control": "0.2.1"
+    "purescript-control": "0.2.1",
+    "purescript-free": "~0.1.6",
+    "purescript-foreign": "~0.2.2"
   }
 }

@@ -20,6 +20,13 @@ var gulp = require('gulp')
               output: 'todomvc.js'
             }
           },
+          todomvcf: {
+            src: 'examples/TodomvcF/**/*.purs',
+            options: {
+              main: 'TodomvcF.Main',
+              output: 'todomvcf.js'
+            }
+          },
           backend: {
             src: 'examples/Backend/**/*.purs',
             options: {
@@ -55,6 +62,14 @@ function server(cb) {
   });
 }
 
+function example(ex) {
+  return (gulp.src([ex.src].concat(config.purescript.src)).
+          pipe(plumber()).
+          pipe(purescript.psc(ex.options)).
+          on('error', error).
+          pipe(gulp.dest(config.purescript.dest)));
+}
+
 gulp.task('clean', function(){
   return (
     gulp.src(config.clean, {read: false}).
@@ -63,23 +78,15 @@ gulp.task('clean', function(){
 });
 
 gulp.task('todomvc', ['clean'], function(){
-  return (
-    gulp.src([config.purescript.examples.todomvc.src].concat(config.purescript.src)).
-    pipe(plumber()).
-    pipe(purescript.psc(config.purescript.examples.todomvc.options)).
-    on('error', error).
-    pipe(gulp.dest(config.purescript.dest))
-  );
+  return example(config.purescript.examples.todomvc);
+});
+
+gulp.task('todomvcf', ['clean'], function(){
+  return example(config.purescript.examples.todomvcf);
 });
 
 gulp.task('backend', ['clean'], function(){
-  return (
-    gulp.src([config.purescript.examples.backend.src].concat(config.purescript.src)).
-    pipe(plumber()).
-    pipe(purescript.psc(config.purescript.examples.backend.options)).
-    on('error', error).
-    pipe(gulp.dest(config.purescript.dest))
-  );
+  return example(config.purescript.examples.backend);
 });
 
 gulp.task('make', function(){
@@ -116,6 +123,11 @@ gulp.task('watch', function(cb){
 
 gulp.task('watch.todomvc', function(cb){
   gulp.watch([config.purescript.examples.todomvc.src].concat(config.purescript.src), ['todomvc']);
+  server(cb);
+});
+
+gulp.task('watch.todomvcf', function(cb){
+  gulp.watch([config.purescript.examples.todomvcf.src].concat(config.purescript.src), ['todomvcf']);
   server(cb);
 });
 
