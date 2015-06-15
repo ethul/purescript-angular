@@ -45,25 +45,75 @@ foreign import extend
 
 -- | injector, see Angular.Injector
 
--- | isArray
+foreign import isArray
+  " function isArray(value) { \
+  \   return function() { \
+  \     return angular.isArray(value); \
+  \   }; \
+  \ }" :: forall e a. a -> Eff e Boolean
 
--- | isDate
+foreign import isDate
+  " function isDate(value) { \
+  \   return function() { \
+  \     return angular.isDate(value); \
+  \   }; \
+  \ }" :: forall e a. a -> Eff e Boolean
 
--- | isDefined
+foreign import isDefined
+  " function isDefined(value) { \
+  \   return function() { \
+  \     return angular.isDefined(value); \
+  \   }; \
+  \ }" :: forall e a. a -> Eff e Boolean
 
--- | isElement
+foreign import isElement
+  " function isElement(value) { \
+  \   return function() { \
+  \     return angular.isElement(value); \
+  \   }; \
+  \ }" :: forall e a. a -> Eff e Boolean
 
--- | isFunction
+foreign import isFunction
+  " function isFunction(value) { \
+  \   return function() { \
+  \     return angular.isFunction(value); \
+  \   }; \
+  \ }" :: forall e a. a -> Eff e Boolean
 
--- | isNumber
+foreign import isNumber
+  " function isNumber(value) { \
+  \   return function() { \
+  \     return angular.isNumber(value); \
+  \   }; \
+  \ }" :: forall e a. a -> Eff e Boolean
 
--- | isObject
+foreign import isObject
+  " function isObject(value) { \
+  \   return function() { \
+  \     return angular.isObject(value); \
+  \   }; \
+  \ }" :: forall e a. a -> Eff e Boolean
 
--- | isString
+foreign import isString
+  " function isString(value) { \
+  \   return function() { \
+  \     return angular.isString(value); \
+  \   }; \
+  \ }" :: forall e a. a -> Eff e Boolean
 
--- | isUndefined
+foreign import isUndefined
+  " function isUndefined(value) { \
+  \   return function() { \
+  \     return angular.isUndefined(value); \
+  \   }; \
+  \ }" :: forall e a. a -> Eff e Boolean
 
--- | lowercase
+foreign import lowercase
+  " function lowercase(str) { \
+  \   return function() { \
+  \     return angular.lowercase(str); \
+  \   }; \
+  \ }" :: forall e. String -> Eff e String
 
 -- | module => Angular.Module
 
